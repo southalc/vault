@@ -1,0 +1,7 @@
+<% if $value == 'ca_chain' { -%>
+<%= join($content[$value], "\n") %>
+<% } elsif $value == 'all' { -%>
+<%= $content %>
+<% } else { -%>
+<%= $content[$value] %>
+<% } -%>

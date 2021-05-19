@@ -1,0 +1,12 @@
+---
+# Properties to be added to certificate requests to Vault
+vault::cert_data:
+  common_name: "%{::fqdn}"
+  #alt_names: "%{::hostname}"
+  exclude_cn_from_sans: false
+  format: "pem"
+  private_key_format: "pem"
+  ip_sans:
+    - "%{facts.networking.ip}"
+
+

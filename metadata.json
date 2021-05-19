@@ -1,0 +1,55 @@
+{
+  "name": "southalc-vault",
+  "version": "0.1.0",
+  "author": "Chris Southall",
+  "summary": "Work with secrets from Hashicorp Vault",
+  "license": "Apache-2.0",
+  "source": "https://github.com/southalc/vault.git",
+  "project_page": "https://github.com/southalc/vault",
+  "issues_url": "https://github.com/southalc/vault/issues",
+  "dependencies": [
+    {
+      "name": "puppetlabs/stdlib",
+      "version_requirement": ">= 4.19.0 < 8.0.0"
+    }
+  ],
+  "operatingsystem_support": [
+    {
+      "operatingsystem": "CentOS"
+    },
+    {
+      "operatingsystem": "OracleLinux"
+    },
+    {
+      "operatingsystem": "RedHat"
+    },
+    {
+      "operatingsystem": "Scientific"
+    },
+    {
+      "operatingsystem": "Debian"
+    },
+    {
+      "operatingsystem": "Ubuntu"
+    },
+    {
+      "operatingsystem": "SLES"
+    },
+    {
+      "operatingsystem": "Fedora"
+    }
+  ],
+  "requirements": [
+    {
+      "name": "puppet",
+      "version_requirement": ">= 4.10.0 < 8.0.0"
+    }
+  ],
+  "tags": [
+    "vault",
+    "hiera"
+  ],
+  "pdk-version": "2.1.0",
+  "template-url": "pdk-default#2.1.0",
+  "template-ref": "tags/2.1.0-0-ga675ea5"
+}
