@@ -49,12 +49,14 @@ class vault (
         group  => 'root',
       ;
       $cert:
-        mode    => '0644',
-        content => $host_cert['certificate'],
+        mode      => '0644',
+        content   => $host_cert['certificate'],
+        show_diff => false,
       ;
       $key:
-        mode    => '0600',
-        content => $host_cert['private_key'],
+        mode      => '0600',
+        content   => $host_cert['private_key'],
+        show_diff => false,
       ;
       $ca_chain:
         mode    => '0644',
@@ -75,6 +77,8 @@ class vault (
       $key:
         mode    => '0600',
       ;
+      $ca_chain:
+        mode    => '0644',
     }
   }
 
