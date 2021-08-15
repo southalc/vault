@@ -11,12 +11,12 @@
 #   defined in module hiera.
 #
 # @example Issue a host certificate from a Vault server with PKI secrets engine
-#  class { 'vault':
+#  class { 'vault_secrets':
 #    vault_uri  => 'https://vault.example.com:8200/v1/pki/issue/example-com',
 #    auth_path  => 'puppet-pki',
 #  }
 #
-class vault (
+class vault_secrets (
   String $vault_uri,
   String $auth_path,
   Integer[1, 30] $days_before_renewal = 3,
@@ -64,7 +64,8 @@ class vault (
         notify  => Exec['vault update-ca-trust'],
     }
   } else {
-    # Ensure file resources are defined so other resources can depend on them
+    # When certificate files are not being updated, we still define them in the
+    # catalog as file resources so they can always be referenced by other resources.
     file {
       default:
         ensure => present,
