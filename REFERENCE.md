@@ -6,7 +6,7 @@
 
 ### Classes
 
-* [`vault`](#vault): Issue and renew PKI certificates from Hashicorp Vault
+* [`vault_secrets`](#vault_secrets): Issue and renew PKI certificates from Hashicorp Vault
 
 ### Functions
 
@@ -17,7 +17,7 @@
 
 ## Classes
 
-### `vault`
+### `vault_secrets`
 
 Issue and renew PKI certificates from Hashicorp Vault
 
@@ -26,7 +26,7 @@ Issue and renew PKI certificates from Hashicorp Vault
 ##### Issue a host certificate from a Vault server with PKI secrets engine
 
 ```puppet
-class { 'vault':
+class { 'vault_secrets':
   vault_uri  => 'https://vault.example.com:8200/v1/pki/issue/example-com',
   auth_path  => 'puppet-pki',
 }
@@ -34,7 +34,7 @@ class { 'vault':
 
 #### Parameters
 
-The following parameters are available in the `vault` class.
+The following parameters are available in the `vault_secrets` class.
 
 ##### `vault_uri`
 
