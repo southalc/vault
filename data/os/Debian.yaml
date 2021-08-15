@@ -1,2 +1,2 @@
 ---
-vault::update_trust_cmd: 'update-ca-certificates'
+vault_secrets::update_trust_cmd: 'update-ca-certificates'
