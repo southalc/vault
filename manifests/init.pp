@@ -84,7 +84,7 @@ class vault_secrets (
 
   exec { 'vault update-ca-trust':
     path        => '/sbin:/usr/sbin:/bin:/usr/bin',
-    command     => lookup('vault::update_trust_cmd'),
+    command     => lookup('vault_secrets::update_trust_cmd'),
     refreshonly => true,
   }
 }

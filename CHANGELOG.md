@@ -1,5 +1,9 @@
 # Changelog
 
+## Release 0.2.1
+
+Bugfix - Module hiera update for new module name
+
 ## Release 0.2.0
 
 - Module renamed to "vault_secrets" to avoid naming conflict
