@@ -1,4 +1,4 @@
-# vault
+# vault_secrets
 
 ## Table of Contents
 
@@ -42,8 +42,8 @@ as the secret name for storing key/value secrets common to all nodes.
 3. Configure Vault to enable authentication with certificates issued by the Puppet certificate authority.  From a Puppet
 node you can reference the Puppet CA certificate from: '/etc/puppetlabs/puppet/ssl/certs/ca.pem'.  When using PKI
 authentication, the module functions will authenticate every Vault request independently, so use a low "ttl" value to
-keep from building up many active Vault tokens.  Alternatively, you can generate a permanent Vault token for use with
-the `vault_hiera_hash` function as a way to reduce overhead with hiera.
+keep from building up many active Vault tokens.  Alternatively, you can generate a long-term Vault token for use with
+the `vault_hiera_hash` function as a way to reduce overhead during hiera lookups.
 ```
 vault auth enable -path=puppet-pki -description="PKI authentication with Puppet certificates" cert
 vault write auth/puppet-pki/certs/puppetCA \
@@ -51,6 +51,13 @@ vault write auth/puppet-pki/certs/puppetCA \
   policies=puppet \
   certificate=@/etc/puppetlabs/puppet/ssl/certs/ca.pem \
   ttl=60
+```
+
+If you don't want to use deferred functions and just want to use Vault with hiera, it's recommended to manually create
+a Vault token.  This avoids the overhead of certificate authentication with every hiera lookup.  Set up a Vault policy
+for Puppet first per the example in setup step #5, then create the Vault token:
+```
+vault token create -display-name="Puppet hiera lookups" -orphan -policy=puppet
 ```
 
 4. Optionally enable a PKI secrets engine on Vault to serve as a certificate authority and get dynamic provisioning of X.509
@@ -195,6 +202,22 @@ hierarchy:
     options:
       timeout: 3
       auth_path: "puppet-pki"
+      ca_trust: "/etc/ssl/certs/ca-certificates.crt"
+```
+Example configuration using Vault for hiera data using multiple search paths and a pre-staged Vault token to avoid
+authentication overhead with each lookup.  When using a Vault token, ensure the 'token_file' has read permissions by
+the user running the Puppet server process.  Obviously this is a security sensitive file that should be protected from
+all other access.
+```
+hierarchy:
+  - name: "Secrets from Vault"
+    data_hash: vault_hiera_hash
+    uris:
+      - "https://vault.example.com:8200/v1/puppet/nodes/%{fqdn}"  # Node specific secrets
+      - "https://vault.example.com:8200/v1/puppet/common"         # Secrets common to all nodes
+    options:
+      timeout: 3
+      token_file: "/etc/puppetlabs/puppet/.vault-token"           # File contains the Vault token
       ca_trust: "/etc/ssl/certs/ca-certificates.crt"
 ```
 

@@ -43,9 +43,15 @@ def vault_http_post(http, uri_path, token, data)
   request['Content-Type'] = 'application/json'
   request.set_form_data(data)
   response = http.request(request)
-  err_message = 'Failed to obtain secrets from Vault: %{code}' % { code: response.code }
-  raise Puppet::Error, append_api_errors(err_message, response) unless response.is_a?(Net::HTTPOK)
-  response
+  data = if response.is_a?(Net::HTTPOK)
+           response
+         elsif response.code.to_s == '404'
+           {}
+         else
+           err_message = 'Failed to obtain secrets from Vault: %{code}' % { code: response.code }
+           raise Puppet::Error, append_api_errors(err_message, response)
+         end
+  data
 end
 
 def vault_parse_data(secrets, version = 'v1')
@@ -58,9 +64,9 @@ def vault_parse_data(secrets, version = 'v1')
            else
              JSON.parse(secrets.body)['data']
            end
-  rescue StandardError
-    err_message = 'Error parsing Vault response.'
-    raise Puppet::Error, err_message
+  rescue
+    # Return an empty hash when secrets fails to parse
+    data = {}
   end
   data
 end

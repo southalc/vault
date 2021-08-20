@@ -11,12 +11,12 @@
 #   defined in module hiera.
 #
 # @example Issue a host certificate from a Vault server with PKI secrets engine
-#  class { 'vault':
+#  class { 'vault_secrets':
 #    vault_uri  => 'https://vault.example.com:8200/v1/pki/issue/example-com',
 #    auth_path  => 'puppet-pki',
 #  }
 #
-class vault (
+class vault_secrets (
   String $vault_uri,
   String $auth_path,
   Integer[1, 30] $days_before_renewal = 3,
