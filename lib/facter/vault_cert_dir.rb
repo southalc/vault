@@ -3,19 +3,19 @@
 require 'facter'
 require 'date'
 
-Facter.add(:vault_cert) do
+Facter.add(:vault_cert_dir) do
   confine osfamily: 'RedHat'
 
   setcode do
-    '/etc/pki/vault-secerts'
+    '/etc/pki/vault-secrets'
   end
 end
 
-Facter.add(:vault_cert) do
+Facter.add(:vault_cert_dir) do
   confine osfamily: 'Debian'
 
   setcode do
-    '/etc/ssl/vault-secerts'
+    '/etc/ssl/vault-secrets'
   end
 end
 
