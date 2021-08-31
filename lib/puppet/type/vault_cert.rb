@@ -54,8 +54,8 @@ Puppet::Type.newtype(:vault_cert) do
     newproperty(:ca_chain_file) do
         desc 'Where the CA chain file should be written'
         defaultto do
-                cert_dir = Facter.value(:vault_cert_dir)
-                      "#{cert_dir}/#{@resource[:name]}.chain.crt"
+            cert_dir = Facter.value(:vault_cert_dir)
+            "#{cert_dir}/#{@resource[:name]}.chain.crt"
         end
     end
 
@@ -74,7 +74,7 @@ Puppet::Type.newtype(:vault_cert) do
         defaultto '0644'
     end
 
-    newproperty(:ca_chain, :readonly => true) do
+    newproperty(:ca_chain) do
         desc 'Read-only property which contains the value of the CA chain'
         newvalues(:auto)
         defaultto :auto
@@ -84,7 +84,7 @@ Puppet::Type.newtype(:vault_cert) do
         end
     end
 
-    newproperty(:info_ca_chain, :readonly => true) do
+    newproperty(:info_ca_chain) do
         desc 'Read-only property which contains the value of the CA chain from the info file'
         newvalues(:auto)
         defaultto :auto
@@ -119,7 +119,7 @@ Puppet::Type.newtype(:vault_cert) do
         defaultto '0644'
     end
 
-    newproperty(:cert, :readonly => true) do
+    newproperty(:cert) do
         desc 'Read-only property which contains the value of the certificate'
         newvalues(:auto)
         defaultto :auto
@@ -129,7 +129,7 @@ Puppet::Type.newtype(:vault_cert) do
         end
     end
 
-    newproperty(:info_cert, :readonly => true) do
+    newproperty(:info_cert) do
         desc 'Read-only property which contains the value of the cerificate from the info file'
         newvalues(:auto)
         defaultto :auto
@@ -165,7 +165,7 @@ Puppet::Type.newtype(:vault_cert) do
         defaultto '0600'
     end
 
-    newproperty(:info_key, :readonly => true) do
+    newproperty(:info_key) do
         desc 'Read-only property which contains the value of the private key from the info file'
         newvalues(:auto)
         defaultto :auto
@@ -176,7 +176,7 @@ Puppet::Type.newtype(:vault_cert) do
         end
     end
 
-    newproperty(:key, :readonly => true) do
+    newproperty(:key) do
         desc 'Read-only property which contains the value of the privat ekey'
         newvalues(:auto)
         defaultto :auto
@@ -187,21 +187,13 @@ Puppet::Type.newtype(:vault_cert) do
         end
     end
 
-    newproperty(:expiration, :readonly => true) do
+    newproperty(:expiration) do
         desc 'Read-only property showing the expiration time of the certificate'
         newvalues(:auto)
         defaultto :auto
 
         def insync?(is)
             ! provider.expires_soon_or_expired
-        end
-    end
-
-    READ_ONLY_PROPERTIES = [:ca_chain, :info_ca_chain, :cert, :info_cert, :key, :info_key, :expiration].freeze
-
-    validate do
-        READ_ONLY_PROPERTIES.each do |property|
-            self.fail _("Property '%{property}' is read-only") % { property: property } if self[property] != :auto
         end
     end
 

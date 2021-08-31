@@ -92,21 +92,24 @@ Puppet::Type.type(:vault_cert).provide(:ruby) do
 		@property_flush[:ensure] = :absent
 	end
 
+	def self.get_ca_trust
+		# Try known paths for trusted CA certificate bundles
+		if File.exist?('/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem')
+			'/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem'
+		elsif File.exist?('/etc/ssl/certs/ca-certificates.crt')
+			'/etc/ssl/certs/ca-certificates.crt'
+		else
+			raise Puppet::Error, 'Failed to get the trusted CA certificate file'
+		end
+	end
+
 	def issue_cert
 		Puppet.info("Requesting certificate #{@resource[:name]}")
 
 		uri = URI(@resource[:vault_uri])
 		raise Puppet::Error, "Unable to parse a hostname from #{@resource[:vault_uri]}" unless uri.hostname
 
-		# Try known paths for trusted CA certificate bundles
-		ca_trust = if File.exist?('/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem')
-				'/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem'
-			   elsif File.exist?('/etc/ssl/certs/ca-certificates.crt')
-				'/etc/ssl/certs/ca-certificates.crt'
-			   else
-				nil
-			   end
-		raise Puppet::Error, 'Failed to get the trusted CA certificate file' if ca_trust.nil?
+		ca_trust = self.class.get_ca_trust
 
 		http = http_create_secure(uri, ca_trust, @resource[:timeout])
 		token = vault_get_token(http, @resource[:auth_path].delete('/'))
@@ -129,31 +132,35 @@ Puppet::Type.type(:vault_cert).provide(:ruby) do
 		end
 	end
 
-	def chown_file(file, owner, group)
+	def self.chown_file(file, owner, group)
 		uid = owner ? Etc.getpwnam(owner).uid : nil
 		gid = group ? Etc.getgrnam(group).gid : nil
-		Puppet.info("Chowning #{file} to #{uid}:#{gid}")
-		File.chown(uid, gid, file)
+		unless uid.nil? and gid.nil?
+			File.chown(uid, gid, file)
+		end
 	end
 
-	def chmod_file(file, mode)
+	def self.chmod_file(file, mode)
 		File.chmod(mode.to_i(8), file) if mode
 	end
 
-	def delete_if_exists(file)
+	def self.delete_if_exists(file)
 		File.delete(file) if ! file.to_s.empty? && File.exist?(file)
 	end
 
 	def expires_soon_or_expired
 		time_now = Time.now.to_i
-		renewal_time = @property_hash[:expiration] - (@resource[:renewal_threshold] * 3600 * 24)
+		expiry_time = @property_hash[:expiration]
+		renewal_threshold_seconds = @resource[:renewal_threshold] * 3600 * 24
+		renewal_time = expiry_time - renewal_threshold_seconds
 		return time_now >= renewal_time
 	end
 
 	def needs_issue?
 		return true if @property_hash[:ensure] != :present
-		return true if @property_hash[:cert_data] != @property_flush[:cert_data]
+		return true if @property_flush.include?(:cert_data) && @property_hash[:cert_data] != @property_flush[:cert_data]
 		return true if expires_soon_or_expired
+		return false
 	end
 
 	def info_owner=(value)
@@ -229,7 +236,7 @@ Puppet::Type.type(:vault_cert).provide(:ruby) do
 	def key=(value)
 	end
 
-	def flush_file_attributes(file, owner, group, mode, force)
+	def flush_file_attributes(file, owner, group, mode, force=false)
 		# Update the file ownership if not in sync
 		if force || (@property_flush.include?(owner) && @property_hash[owner] != @property_flush[owner]) || (@property_flush.include?(group) && @property_hash[group] != @property_flush[group])
 			self.class.chown_file(file, @property_flush[owner], @property_flush[group])
@@ -247,7 +254,7 @@ Puppet::Type.type(:vault_cert).provide(:ruby) do
 	def flush_file(file, content, owner, group, mode)
 		# If the file will be created (new, or moved), we must reset the attributes,
 		# since Puppet may not have signalled a change by calling the setter methods
-		force_reset_attributes = @property_hash.include?(content) || @property_hash[content].nil? || @property_hash[content].blank?
+		force_reset_attributes = ! @property_hash.include?(content) || (@property_hash[content].nil? || @property_hash[content].empty?)
 
 		# If the file path is being changed, delete the old file first and force all attributes
 		# to be reset, since they won't be correct on the new file, even if they were
@@ -321,7 +328,6 @@ Puppet::Type.type(:vault_cert).provide(:ruby) do
 		flush_file(:ca_chain_file, :ca_chain, :ca_chain_owner, :ca_chain_group, :ca_chain_mode)
 		flush_file(:cert_file, :cert, :cert_owner, :cert_group, :cert_mode)
 		flush_file(:key_file, :key, :key_owner, :key_group, :key_mode)
-
 	end
 
 end
