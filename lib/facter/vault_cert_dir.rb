@@ -18,5 +18,3 @@ Facter.add(:vault_cert_dir) do
     '/etc/ssl/vault-secrets'
   end
 end
-
-
