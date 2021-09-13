@@ -286,6 +286,9 @@ Puppet::Type.type(:vault_cert).provide(:ruby) do
       self.class.delete_if_exists(@resource[:cert_file])
       self.class.delete_if_exists(@resource[:key_file])
       self.class.delete_if_exists(info_file)
+      # Remove all other attributes so that `puppet resource`
+      # shows the correct state after removal
+      @property_hash = @property_hash.slice(:ensure)
       return
     end
 
