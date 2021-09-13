@@ -2,7 +2,7 @@ require 'json'
 require 'spec_helper'
 
 type_class = Puppet::Type.type(:vault_cert)
-provider_class = type_class.provider(:ruby)
+provider_class = type_class.provider(:vault_cert)
 
 describe provider_class do
   let(:resource) do

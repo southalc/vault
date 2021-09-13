@@ -3,7 +3,7 @@ require 'json'
 
 require "#{File.dirname(__FILE__)}/../../shared/vault_common.rb"
 
-Puppet::Type.type(:vault_cert).provide(:ruby) do
+Puppet::Type.type(:vault_cert).provide(:vault_cert) do
   desc 'Issue certificates from Hashicorp Vault'
 
   mk_resource_methods
