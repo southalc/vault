@@ -195,4 +195,29 @@ Puppet::Type.newtype(:vault_cert) do
       !provider.expires_soon_or_expired
     end
   end
+
+  autorequire(:file) do
+    [
+      Facter.value(:vault_cert_dir),
+      File.dirname(self[:ca_chain_file]),
+      File.dirname(self[:cert_file]),
+      File.dirname(self[:key_file]),
+    ].uniq
+  end
+
+  autorequire(:user) do
+    [
+      self[:ca_chain_owner],
+      self[:cert_owner],
+      self[:key_owner],
+    ].uniq
+  end
+
+  autorequire(:group) do
+    [
+      self[:ca_chain_group],
+      self[:cert_group],
+      self[:key_group],
+    ].uniq
+  end
 end

@@ -136,4 +136,100 @@ describe Puppet::Type.type(:vault_cert) do
       end
     end
   end
+
+  describe 'when validating file autorequires' do
+    let(:pki_file_resource) { Puppet::Type.type(:file).new(path: '/test/vault-secrets') }
+    let(:app_file_resource) { Puppet::Type.type(:file).new(path: '/test/app') }
+    let(:catalog) { Puppet::Resource::Catalog.new }
+
+    before :each do
+      allow(Facter).to receive(:value)
+      allow(Facter).to receive(:value).with(:vault_cert_dir).and_return('/test/vault-secrets')
+    end
+
+    context 'using the default property values' do
+      let(:cert_resource) { described_class.new({ name: 'test' }) }
+      let(:auto_req) { cert_resource.autorequire }
+
+      before :each do
+        catalog.add_resource pki_file_resource
+        catalog.add_resource cert_resource
+      end
+
+      it 'contains exactly one file autorequire' do
+        expect(auto_req.size).to eq 1
+      end
+
+      it 'links to the info file directory' do
+        expect(auto_req.map { |rp| rp.source.to_s }).to include('File[/test/vault-secrets]')
+      end
+    end
+
+    context 'using an app dir for chain/cert/key files' do
+      let(:cert_resource) { described_class.new({ name: 'test', ca_chain_file: '/test/app/testchain.crt', cert_file: '/test/app/test.crt', key_file: '/test/app/test.key' }) }
+      let(:auto_req) { cert_resource.autorequire }
+
+      before :each do
+        catalog.add_resource pki_file_resource
+        catalog.add_resource app_file_resource
+        catalog.add_resource cert_resource
+      end
+
+      it 'contains exactly two file autorequire' do
+        expect(auto_req.size).to eq 2
+      end
+
+      it 'links to the info file directory and the app directory' do
+        requires = auto_req.map { |rp| rp.source.to_s }
+        expect(requires).to include('File[/test/vault-secrets]')
+        expect(requires).to include('File[/test/app]')
+      end
+    end
+  end
+
+  describe 'when validating user autorequires' do
+    let(:user_resource) { Puppet::Type.type(:user).new(name: 'root') }
+    let(:catalog) { Puppet::Resource::Catalog.new }
+
+    context 'using the default property values' do
+      let(:cert_resource) { described_class.new({ name: 'test' }) }
+      let(:auto_req) { cert_resource.autorequire }
+
+      before :each do
+        catalog.add_resource user_resource
+        catalog.add_resource cert_resource
+      end
+
+      it 'contains exactly one user autorequire' do
+        expect(auto_req.size).to eq 1
+      end
+
+      it 'links to the user resource' do
+        expect(auto_req.map { |rp| rp.source.to_s }).to include('User[root]')
+      end
+    end
+  end
+
+  describe 'when validating group autorequires' do
+    let(:group_resource) { Puppet::Type.type(:group).new(name: 'root') }
+    let(:catalog) { Puppet::Resource::Catalog.new }
+
+    context 'using the default property values' do
+      let(:cert_resource) { described_class.new({ name: 'test' }) }
+      let(:auto_req) { cert_resource.autorequire }
+
+      before :each do
+        catalog.add_resource group_resource
+        catalog.add_resource cert_resource
+      end
+
+      it 'contains exactly one group autorequire' do
+        expect(auto_req.size).to eq 1
+      end
+
+      it 'links to the group resource' do
+        expect(auto_req.map { |rp| rp.source.to_s }).to include('Group[root]')
+      end
+    end
+  end
 end

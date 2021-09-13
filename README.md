@@ -253,6 +253,9 @@ class { 'vault_secrets::vault_cert':
 }
 ```
 
+`vault_cert` resources will autorequire any `File` resources coresponding to
+the parent directories of the `ca_chain_file`, `cert_file` and `key_file` properties. Any `User` or `Group` resources corresponding to the `*_owner` or `*_group` properties will also be autorequired.
+
 ## Limitations
 
 Should work with all supported releases of Puppet server, but has been only minimally tested.  Deferred functinos require
