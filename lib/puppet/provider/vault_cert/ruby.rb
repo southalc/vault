@@ -80,7 +80,6 @@ Puppet::Type.type(:vault_cert).provide(:ruby) do
   end
 
   def exists?
-    Puppet.info("property_hash includes ensure? #{@property_hash.include?(:ensure)}")
     @property_hash[:ensure] == :present
   end
 
