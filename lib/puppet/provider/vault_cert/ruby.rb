@@ -275,7 +275,7 @@ Puppet::Type.type(:vault_cert).provide(:ruby) do
       @property_hash[content] = @property_flush[content]
     end
 
-    flush_file_attributes(@property_hash[file], owner, group, mode, force_reset_attributes)
+    flush_file_attributes(@resource[file], owner, group, mode, force_reset_attributes)
   end
 
   def flush
