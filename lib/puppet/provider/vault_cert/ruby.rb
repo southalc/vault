@@ -303,6 +303,7 @@ Puppet::Type.type(:vault_cert).provide(:ruby) do
         key_file: @resource[:key_file],
                            })
       File.write(info_file, info)
+      @property_flush[:info_mode] = @resource[:info_mode]
       flush_file_attributes(info_file, :info_owner, :info_group, :info_mode, true)
 
       # These are read-only properties which will never
