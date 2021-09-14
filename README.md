@@ -11,7 +11,7 @@
 
 ## Description
 
-This module provides functions to integrate Hashicorp Vault with Puppet and uses the main module class to enable
+This module provides functions and type/providers to integrate Hashicorp Vault with Puppet and uses the main module class to enable
 issuing and renewing host certificates from a Vault PKI secrets engine.  The module has no dependencies other than
 'puppetlabs-stdlib' and requires no extra ruby gems on the Puppet server or agents.  If you only want to use the
 functions without issuing host certificates from Vault, add the module to an environment without assigning it to
@@ -26,6 +26,10 @@ The `vault_hash` and `vault_key` functions also support Vault key/value secrets 
 be used in manifests to get secrets from Vault.  With Puppet agents 6 and later you can also use
 [deferred functions](https://puppet.com/docs/puppet/latest/deferred_functions.html) to enable clients to get
 secrets directly from Vault without passing them through the Puppet server.
+
+The `vault_cert` resource type can be used to manage TLS certificates for use by other applications.
+These are issued by Vault directly to agents (private keys are not stored on puppet servers or in the catalog),
+and renewed automatically as needed.
 
 ## Setup
 
@@ -197,6 +201,60 @@ hierarchy:
       auth_path: "puppet-pki"
       ca_trust: "/etc/ssl/certs/ca-certificates.crt"
 ```
+### Vault-issued certificates
+
+Include the `vault_secrets::vault_cert` class to ensure required directories are created
+and then use the `vault_cert` resource type for each certificate you wish to manage.
+This resource will authenticate to vault using the agent's Puppet certificate, and write
+the key, certificate and chain files so they can be consumed by another application.
+The private key is written only on the agent, and is not revealed to the puppet server
+or included in the catalog.
+
+Certificates will be renewed automatically when puppet runs and there are fewer days
+remaining than the `renewal_threshold` parameter is set to, or if the certificate is
+found to already be expired.
+
+By default, all files are written to the directory specified by the `$::vault_cert_dir`
+fact, however the issued certificate and key files can be written to arbitrary locations.
+File ownership and permissions can also be customised as shown below.
+
+```puppet
+include vault_secrets::vault_cert
+
+vault_cert { 'test':
+  ensure            => present,
+  vault_uri         => 'https://vault.example.com:8200/pki/issue/role',
+  cert_data         => {
+    'common_name' => 'test.example.com',
+    'alt_names'   => ['alias.exmaple.com', 'localhost'].join('\n'),
+    'ip_sans'     => [$::facts['networking']['ip'], '127.0.0.1'],
+    'ttl'         => '2160h', # 90 days
+  },
+  # Optional
+  renewal_threshold => 5,
+  ca_chain_file     => '/srv/myapp/ca.crt',
+  ca_chain_owner    => 'myapp',
+  ca_chain_group    => 'myapp',
+  cert_file         => '/srv/myapp/server.crt',
+  cert_owner        => 'myapp',
+  cert_group        => 'myapp',
+  key_file          => '/srv/myapp/server.key',
+  key_owner         => 'myapp',
+  key_group         => 'myapp',
+}
+```
+
+You can purge certificates from the system which are no longer included in the puppet
+catalog by setting `vault_sercrets::vault_cert::purge: true` in hiera, or like the below:
+
+```puppet
+class { 'vault_secrets::vault_cert':
+  purge => true,
+}
+```
+
+`vault_cert` resources will autorequire any `File` resources coresponding to
+the parent directories of the `ca_chain_file`, `cert_file` and `key_file` properties. Any `User` or `Group` resources corresponding to the `*_owner` or `*_group` properties will also be autorequired.
 
 ## Limitations
 
