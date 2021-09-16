@@ -1,6 +1,6 @@
 {
   "name": "southalc-vault_secrets",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "author": "Chris Southall",
   "summary": "Work with secrets from Hashicorp Vault",
   "license": "Apache-2.0",
@@ -10,7 +10,7 @@
   "dependencies": [
     {
       "name": "puppetlabs/stdlib",
-      "version_requirement": ">= 4.19.0 < 8.0.0"
+      "version_requirement": ">= 4.19.0 < 9.0.0"
     }
   ],
   "operatingsystem_support": [
@@ -48,9 +48,10 @@
   "tags": [
     "vault",
     "secrets",
+    "cert",
     "hiera"
   ],
-  "pdk-version": "2.1.0",
-  "template-url": "pdk-default#2.1.0",
-  "template-ref": "tags/2.1.0-0-ga675ea5"
+  "pdk-version": "2.2.0",
+  "template-url": "pdk-default#2.2.0",
+  "template-ref": "tags/2.2.0-0-g2381db6"
 }

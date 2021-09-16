@@ -7,6 +7,11 @@
 ### Classes
 
 * [`vault_secrets`](#vault_secrets): Issue and renew PKI certificates from Hashicorp Vault
+* [`vault_secrets::vault_cert`](#vault_secretsvault_cert): Manage paths and files for Vault certificates
+
+### Resource types
+
+* [`vault_cert`](#vault_cert): A type representing a certificate issued by Hashicorp Vault
 
 ### Functions
 
@@ -65,6 +70,221 @@ adhere to the keys/values supported/permitted by the PKI role and policy.  Basic
 defined in module hiera.
 
 Default value: `{}`
+
+### `vault_secrets::vault_cert`
+
+Manage paths and files for Vault certificates
+
+#### Parameters
+
+The following parameters are available in the `vault_secrets::vault_cert` class.
+
+##### `purge`
+
+Data type: `Any`
+
+Clean up certificate files no longer managed by puppet.
+
+Default value: ``false``
+
+## Resource types
+
+### `vault_cert`
+
+A type representing a certificate issued by Hashicorp Vault
+
+#### Properties
+
+The following properties are available in the `vault_cert` type.
+
+##### `ca_chain`
+
+Valid values: `auto`
+
+Read-only property which contains the value of the CA chain
+
+Default value: `auto`
+
+##### `ca_chain_file`
+
+Where the CA chain file should be written
+
+##### `ca_chain_group`
+
+The group which the ca_chain_file should be owned by
+
+Default value: `root`
+
+##### `ca_chain_mode`
+
+The file mode the ca_chain_file should be written with
+
+Default value: `0644`
+
+##### `ca_chain_owner`
+
+The user which the ca_chain_file should be owned by
+
+Default value: `root`
+
+##### `cert`
+
+Valid values: `auto`
+
+Read-only property which contains the value of the certificate
+
+Default value: `auto`
+
+##### `cert_data`
+
+The attributes of the certificate to be issued
+
+##### `cert_file`
+
+Where the certificate file should be written
+
+##### `cert_group`
+
+The group which the cert_file should be owned by
+
+Default value: `root`
+
+##### `cert_mode`
+
+The file mode the cert _file should be written with
+
+Default value: `0644`
+
+##### `cert_owner`
+
+The user which the cert_file should be owned by
+
+Default value: `root`
+
+##### `ensure`
+
+Valid values: `present`, `absent`
+
+The basic property that the resource should be in.
+
+Default value: `present`
+
+##### `expiration`
+
+Valid values: `auto`
+
+Read-only property showing the expiration time of the certificate
+
+Default value: `auto`
+
+##### `info_ca_chain`
+
+Valid values: `auto`
+
+Read-only property which contains the value of the CA chain from the info file
+
+Default value: `auto`
+
+##### `info_cert`
+
+Valid values: `auto`
+
+Read-only property which contains the value of the cerificate from the info file
+
+Default value: `auto`
+
+##### `info_group`
+
+The group which the info_file should be owned by
+
+Default value: `root`
+
+##### `info_key`
+
+Valid values: `auto`
+
+Read-only property which contains the value of the private key from the info file
+
+Default value: `auto`
+
+##### `info_mode`
+
+The file mode the info_file should be written with
+
+Default value: `0600`
+
+##### `info_owner`
+
+The user which the info_file should be owned by
+
+Default value: `root`
+
+##### `key`
+
+Valid values: `auto`
+
+Read-only property which contains the value of the privat ekey
+
+Default value: `auto`
+
+##### `key_file`
+
+Where the key file should be written
+
+##### `key_group`
+
+The group which the key_file should be owned by
+
+Default value: `root`
+
+##### `key_mode`
+
+The file mode the key file should be written with
+
+Default value: `0600`
+
+##### `key_owner`
+
+The user which the key_file should be owned by
+
+Default value: `root`
+
+#### Parameters
+
+The following parameters are available in the `vault_cert` type.
+
+##### `auth_path`
+
+The path used to authenticate puppet agent to vault
+
+Default value: `puppet-pki`
+
+##### `name`
+
+namevar
+
+The name of the certificate
+
+##### `provider`
+
+The specific backend to use for this `vault_cert` resource. You will seldom need to specify this --- Puppet will usually
+discover the appropriate provider for your platform.
+
+##### `renewal_threshold`
+
+Certificate should be renewed when fewer than this many days remain before expiry
+
+Default value: `3`
+
+##### `timeout`
+
+Length of time to wait on vault connections
+
+Default value: `5`
+
+##### `vault_uri`
+
+The full URI of the vault PKI secrets engine
 
 ## Functions
 

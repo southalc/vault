@@ -64,7 +64,8 @@ class vault_secrets (
         notify  => Exec['vault update-ca-trust'],
     }
   } else {
-    # Ensure file resources are defined so other resources can depend on them
+    # When certificate files are not being updated, we still define them in the
+    # catalog as file resources so they can always be referenced by other resources.
     file {
       default:
         ensure => present,

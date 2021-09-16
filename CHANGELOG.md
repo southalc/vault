@@ -1,5 +1,11 @@
 # Changelog
 
+## Release 0.3.0
+
+- Added custom provider with the 'vault_cert' type to enable puppet nodes to directly
+  manage a Vault certificate without the request being issued through the puppet master
+  and being stored in the catalog.  Contributed by optiz0r.
+
 ## Release 0.2.1
 
 Bugfix - Module hiera update for new module name
