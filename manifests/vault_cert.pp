@@ -1,6 +1,9 @@
-# @summary 
+# @summary Manage paths and files for Vault certificates
+#
+# @param purge Clean up certificate files no longer managed by puppet.
+#
 class vault_secrets::vault_cert (
-  $purge=false
+  $purge = false,
 ) {
 
   file {
