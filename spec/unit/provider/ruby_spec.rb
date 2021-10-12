@@ -290,7 +290,9 @@ describe provider_class do
       it 'raises an exception' do
         resource = type_class.new({ name: 'test', vault_uri: 'invalid', provider: provider_class.name })
         instance = provider_class.new(resource)
-        expect(instance).to receive(:URI).and_return(instance_double('URI::HTTP', hostname: nil))
+        expect(Vault).to receive(:new).and_raise(Puppet::Error, 'Unable to parse a hostname from invalid')
+        # Vault.new should cause a failure before the path is calculated
+        expect(instance).not_to receive(:URI)
         expect {
           instance.issue_cert
         }.to raise_error(Puppet::Error, %r{Unable to parse a hostname})
@@ -308,11 +310,11 @@ describe provider_class do
         resource = type_class.new({ name: 'test', vault_uri: 'http://vault.example.com/pki/issue/cert', cert_data: { 'common_name': 'test.example.com' }, timeout: 9,
   provider: provider_class.name })
         instance = provider_class.new(resource)
+        vault_conn = instance_double('Vault')
+        expect(Vault).to receive(:new).and_return(vault_conn)
         expect(instance).to receive(:URI).and_return(uri)
-        expect(instance).to receive(:http_create_secure).with(uri, '/test/ca.crt', 9).and_return(:http)
-        expect(instance).to receive(:vault_get_token).with(:http, 'puppet-pki').and_return('secrettoken')
-        expect(instance).to receive(:vault_http_post).with(:http, '/pki/issue/cert', 'secrettoken', { 'common_name': 'test.example.com' }).and_return('response')
-        expect(instance).to receive(:vault_parse_data).with('response').and_return('secrets')
+        expect(vault_conn).to receive(:post).with('/pki/issue/cert', { 'common_name': 'test.example.com' }).and_return('response')
+        expect(vault_conn).to receive(:parse_response).with('response').and_return('secrets')
         expect(instance.issue_cert).to eq 'secrets'
       end
     end
