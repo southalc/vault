@@ -16,14 +16,13 @@ Puppet::Functions.create_function(:vault_cert) do
     optional_param 'String', :ca_trust
   end
 
-  require "#{File.dirname(__FILE__)}/../../puppet_x/vault_secrets/shared.rb"
   require "#{File.dirname(__FILE__)}/../../puppet_x/vault_secrets/vault.rb"
 
   def vault_cert(vault_uri, auth_path, data, timeout = 5, ca_trust = nil)
     connection = {
       'uri'       => vault_uri,
       'auth_path' => auth_path,
-      'ca_trust'  => get_ca_file(ca_trust),
+      'ca_trust'  => ca_trust,
       'timeout'   => timeout,
     }
 
