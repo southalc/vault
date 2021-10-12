@@ -329,7 +329,7 @@ Value in seconds to wait for Vault connections.  Default is 5.
 
 Data type: `Optional[String]`
 
-The path to the trusted certificate authority chain file
+The path to the trusted certificate authority chain file.  Some OS defaults will be attempted if nil.
 
 ### `vault_hash`
 
@@ -371,7 +371,7 @@ Value in seconds to wait for Vault connections.
 
 Data type: `Optional[String]`
 
-The path to the trusted certificate authority chain file
+The path to the trusted certificate authority chain file.  Some OS defaults will be attempted if nil.
 
 ### `vault_hiera_hash`
 
@@ -443,5 +443,5 @@ Value in seconds to wait for a response from Vault
 
 Data type: `Optional[String]`
 
-The path to the trusted certificate authority chain file
+The path to the trusted certificate authority chain file.  Some OS defaults will be attempted if nil.
 
