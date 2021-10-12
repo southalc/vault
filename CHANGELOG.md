@@ -1,5 +1,9 @@
 # Changelog
 
+## Release 0.3.1
+
+- Refactor shared functions as a ruby class and update references
+
 ## Release 0.3.0
 
 - Added custom provider with the 'vault_cert' type to enable puppet nodes to directly
