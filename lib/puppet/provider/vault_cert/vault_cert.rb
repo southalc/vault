@@ -1,7 +1,7 @@
 require 'etc'
 require 'json'
 
-require "#{File.dirname(__FILE__)}/../../shared/vault_common.rb"
+require "#{File.dirname(__FILE__)}/../../../puppet_x/vault_secrets/vault.rb"
 
 Puppet::Type.type(:vault_cert).provide(:vault_cert) do
   desc 'Issue certificates from Hashicorp Vault'
@@ -104,18 +104,17 @@ Puppet::Type.type(:vault_cert).provide(:vault_cert) do
 
   def issue_cert
     Puppet.info("Requesting certificate #{@resource[:name]}")
-
-    uri = URI(@resource[:vault_uri])
-    raise Puppet::Error, "Unable to parse a hostname from #{@resource[:vault_uri]}" unless uri.hostname
-
     ca_trust = self.class.get_ca_trust
-
-    http = http_create_secure(uri, ca_trust, @resource[:timeout])
-    token = vault_get_token(http, @resource[:auth_path].delete('/'))
-    secrets = vault_http_post(http, uri.path, token, @resource[:cert_data])
-    response = vault_parse_data(secrets)
-
-    response
+    connection = {
+      'uri'       => @resource[:vault_uri],
+      'auth_path' => @resource[:auth_path],
+      'ca_trust'  => ca_trust,
+      'timeout'   => @resource[:timeout],
+    }
+    # Use the Vault class for the lookup
+    vault = Vault.new(connection)
+    response = vault.post(URI(@resource[:vault_uri]).path, @resource[:cert_data])
+    vault.parse_response(response)
   end
 
   def self.load_file(file)

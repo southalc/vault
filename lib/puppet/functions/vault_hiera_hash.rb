@@ -2,12 +2,12 @@
 #
 Puppet::Functions.create_function(:vault_hiera_hash) do
   # @param options Hash containing:
-  # @option uri        Required. The complete URI to the API endpoint of a Vault key/value secrets path.
+  # @option uri        Required. The complete URL to the API endpoint of a Vault key/value secrets path.
+  # @option ca_trust   Required. The path to trusted CA certificate chain file.
   # @option token_file Optional. Path to a file that contains a Vault token, otherwise will try PKI auth with Puppet cert
   # @option auth_path  Optional. The Vault path for the "cert" authentication type used with Puppet certificates
   # @option version    Optional. Defaults to Vault key/value secrets engine v1 unless this is set to 'v2'.
   # @option timeout    Optional. Default is 5 seconds.
-  # @option ca_trust   Required. The path to trusted CA certificate chain file.
   # @param context     Default parameter used for caching
   # @return [Hash] All key/value pairs from the given Vault path will be returned to hiera
   dispatch :vault_hiera_hash do
@@ -15,51 +15,30 @@ Puppet::Functions.create_function(:vault_hiera_hash) do
     param 'Puppet::LookupContext', :context
   end
 
-  require "#{File.dirname(__FILE__)}/../shared/vault_common.rb"
+  require "#{File.dirname(__FILE__)}/../../puppet_x/vault_secrets/vault.rb"
 
   def vault_hiera_hash(options, context)
     err_message = "The vault_hiera_hash function requires one of 'uri' or 'uris'"
     raise Puppet::DataBinding::LookupError, err_message unless options.key?('uri')
 
-    Puppet.debug "Using Vault uri: #{options['uri']}"
+    Puppet.debug "Using Vault URL: #{options['uri']}"
 
-    err_message = "The vault_hiera_hash function requires the 'ca_trust' parameter"
-    raise Puppet::DataBinding::LookupError, err_message unless options.key?('ca_trust')
+    connection = {}
+    options.each do |key, value|
+      connection[key] = value
+    end
 
-    err_message = "The 'ca_trust' file was not found: #{options['ca_trust']}"
-    raise Puppet::DataBinding::LookupError, err_message unless File.file?(options['ca_trust'])
+    if options.key?('token_file')
+      token = File.read(options['token_file']).strip
+      connection['token'] = token
+    end
 
-    err_message = "The vault_hiera_hash 'token_file' does not exist: #{options['token_file']}"
-    raise Puppet::DataBinding::LookupError, err_message if options.key?('token_file') && !File.file?(options['token_file'])
+    # Hiera lookups should not fail hard when data is not found
+    connection['fail_hard'] = false
 
-    err_message = "The vault_hiera_hash options require either 'token_file' or 'auth_path'"
-    raise Puppet::DataBinding::LookupError, err_message unless options.key?('token_file') || options.key?('auth_path')
+    # Use the Vault class for the lookup
+    data = Vault.new(connection).get
 
-    uri = URI(options['uri'])
-    err_message = "Function vault_hiera_hash failed parse a hostname from #{options['uri']}"
-    raise Puppet::DataBinding::LookupError, err_message unless uri.hostname
-
-    timeout = if options.key?('timeout')
-                options[:timeout]
-              else
-                5
-              end
-
-    http = http_create_secure(uri, options['ca_trust'], timeout)
-
-    # Read token from file or authenticate with the Puppet certificate
-    token = if options.key?('token_file')
-              File.read(options['token_file']).strip
-            else
-              vault_get_token(http, options['auth_path'].delete('/'))
-            end
-
-    secrets = vault_http_get(http, uri.path, token)
-    data = if options['version'] == 'v2'
-             vault_parse_data(secrets, 'v2')
-           else
-             vault_parse_data(secrets, 'v1')
-           end
     context.not_found if data.empty? || !data.is_a?(Hash)
     context.cache_all(data)
     data

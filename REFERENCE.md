@@ -294,7 +294,7 @@ Type: Ruby 4.x API
 
 Obtain a host certificate from a Vault PKI secrets engine
 
-#### `vault_cert(String $vault_uri, String $auth_path, Hash $data, Optional[Integer] $timeout)`
+#### `vault_cert(String $vault_uri, String $auth_path, Hash $data, Optional[Integer] $timeout, Optional[String] $ca_trust)`
 
 The vault_cert function.
 
@@ -325,13 +325,19 @@ Data type: `Optional[Integer]`
 
 Value in seconds to wait for Vault connections.  Default is 5.
 
+##### `ca_trust`
+
+Data type: `Optional[String]`
+
+The path to the trusted certificate authority chain file
+
 ### `vault_hash`
 
 Type: Ruby 4.x API
 
 Return a hash from a Vault key/value secrets engine path
 
-#### `vault_hash(String $vault_uri, String $auth_path, Optional[String] $version, Optional[Integer] $timeout)`
+#### `vault_hash(String $vault_uri, String $auth_path, Optional[String] $version, Optional[Integer] $timeout, Optional[String] $ca_trust)`
 
 The vault_hash function.
 
@@ -360,6 +366,12 @@ Set this value to 'v2' to use version 2 of the Vault key/value secrets engine.
 Data type: `Optional[Integer]`
 
 Value in seconds to wait for Vault connections.
+
+##### `ca_trust`
+
+Data type: `Optional[String]`
+
+The path to the trusted certificate authority chain file
 
 ### `vault_hiera_hash`
 
@@ -391,7 +403,7 @@ Type: Ruby 4.x API
 
 Return the value from a Vault key/value secrets engine from a given path and key
 
-#### `vault_key(String $vault_uri, String $auth_path, String $key, Optional[String] $version, Optional[Integer] $timeout)`
+#### `vault_key(String $vault_uri, String $auth_path, String $key, Optional[String] $version, Optional[Integer] $timeout, Optional[String] $ca_trust)`
 
 The vault_key function.
 
@@ -426,4 +438,10 @@ Set this value to 'v2' to use version 2 of the Vault key/value secrets engine
 Data type: `Optional[Integer]`
 
 Value in seconds to wait for a response from Vault
+
+##### `ca_trust`
+
+Data type: `Optional[String]`
+
+The path to the trusted certificate authority chain file
 
