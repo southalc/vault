@@ -1,6 +1,6 @@
 {
   "name": "southalc-vault_secrets",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "author": "Chris Southall",
   "summary": "Work with secrets from Hashicorp Vault",
   "license": "Apache-2.0",
@@ -49,6 +49,7 @@
     "vault",
     "secrets",
     "cert",
+    "certificate",
     "hiera"
   ],
   "pdk-version": "2.2.0",

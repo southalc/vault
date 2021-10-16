@@ -8,15 +8,16 @@ require 'json'
 # Class provides methods to interface with Hashicorp Vault
 class Vault
   def initialize(args)
-    # @args - Hash May contain the following keys:
-    # uri       String  Required The URL for this session
-    # timeout   Integer Optional Seconds to wait for connection attempts. (5)
-    # secure    Boolean Optional When true, security certificates will be validated against the 'ca_file' (true)
-    # ca_file   String  Optional The path to a file containing the trusted certificate authority chain.
-    # token     String  Optional The token used to access the Vault API, else you can use get_token()
-    # auth_path String  The Vault path of the "cert" authentication type for Puppet certificates
-    # fail_hard Boolean Optional Raise an exception on errors when true, or return an empty hash when false. (true)
-    # version   String  Optional The version of the Vault key/value secrets engine, either 'v1' or 'v2'. (v1)
+    # @summary Provide methods to interface with Hashicorp Vault
+    # @param [Hash] args Configuration options for the Vault connection.
+    # @option args [String] :uri Required The URL of a Vault API endpoint
+    # @option args [Integer] :timeout Optional Seconds to wait for connection attempts. (5)
+    # @option args [Boolean] :secure Optional When true, security certificates will be validated against the 'ca_file' (true)
+    # @option args [String] :ca_file Optional path to a file containing the trusted certificate authority chain.
+    # @option args [String] :token Optional token used to access the Vault API, otherwise attempts certificate authentication using the Puppet agent certificate.
+    # @option args [String] :auth_path The Vault path of the "cert" authentication type for Puppet certificates
+    # @option args [Boolean] :fail_hard Optional Raise an exception on errors when true, or return an empty hash when false. (true)
+    # @option args [String] :version The version of the Vault key/value secrets engine, either 'v1' or 'v2'. (v1)
     raise Puppet::Error, "The #{self.class.name} class requires a 'uri'." unless args.key?('uri')
     @uri = URI(args['uri'])
     raise Puppet::Error, "Unable to parse a hostname from #{args['uri']}" unless uri.hostname
@@ -40,11 +41,14 @@ class Vault
     http.read_timeout = timeout
     secure = true unless args.dig('secure') == false || @uri.scheme == 'http'
     if secure
-      raise Puppet::Error, "A secure connection requires a 'ca_trust' file." unless args.key?('ca_trust')
-      ca_trust = get_ca_file(args['ca_trust'])
+      ca_trust = if args.dig('ca_trust').is_a? String
+                   args['ca_trust']
+                 else
+                   nil
+                 end
       http.use_ssl = true
       http.ssl_version = :TLSv1_2
-      http.ca_file = ca_trust
+      http.ca_file = get_ca_file(ca_trust)
       http.verify_mode = OpenSSL::SSL::VERIFY_PEER
     elsif @uri.scheme == 'https'
       http.use_ssl = true
@@ -86,6 +90,9 @@ class Vault
 
   def append_api_errors(message, response)
     # @summary Add meaningful(maybe?) messages to errors
+    # @param [String] :message The error string before appending any API errors.
+    # @param [Net::HTTPResponse] :response The method will try to read errors from the response and append to 'message'
+    # @return [String] The updated error message including any errors found in the response.
     errors = begin
                JSON.parse_json(response.body)['errors']
              rescue
@@ -97,9 +104,9 @@ class Vault
 
   def parse_response(response, version = @version)
     # @summary Process an HTTP response as a JSON string and return Vault secrets
-    # @param   response - An instance of Net::HTTPResponse
-    # @param   version  - The version of the Vault key/value secrets engine in the response, either 'v1' or 'v2' (v1)
-    # @return  Hash of Vault secrets
+    # @param [Net::HTTPResponse] :response The object body will be parsed as JSON.
+    # @param [String] :version The version of the Vault key/value secrets engine in the response, either 'v1' or 'v2' (v1)
+    # @return [Hash] The returned hash contains the secret key/value pairs.
     begin
       output = if version == 'v2'
                  JSON.parse(response.body)['data']['data']
@@ -122,9 +129,9 @@ class Vault
 
   def get(uri_path = @uri.path, version = @version)
     # @summary Submit an HTTP GET request to the given 'uri_path'
-    # @param  uri_path A relative path component of a URI, or reference URI.path
-    # @param  version The version of the Vault key/value secrets engine (v1)
-    # @retrun Hash of secrets from parse_response
+    # @param [String] :uri_path A relative path component of a URI, or reference URI.path
+    # @param [String] :version The version of the Vault key/value secrets engine (v1)
+    # @retrun [Hash] A hash containing the secret key/value pairs.
     @uri_path = uri_path
     request = Net::HTTP::Get.new(uri_path)
     @headers.each do |key, value|
@@ -137,9 +144,9 @@ class Vault
 
   def post(uri_path = @uri.path, data = {})
     # @summary Submit an http post request to the given 'uri_path'
-    # @param uri_path String - A relative path component of a URI, or reference URI.path
-    # @param data Hash   - Values to submit with the POST request
-    # return An instance of Net::HTTPResponse
+    # @param [String] :uri_path A relative path component of a URI, or reference to a URI.path.
+    # @param [Hash] :data A hash of values to submit with the HTTP POST request.
+    # return [Net::HTTPResponse]
     @uri_path = uri_path
     request = Net::HTTP::Post.new(uri_path)
     # This function may be called before instance variable is defined as part of initialize
@@ -147,7 +154,7 @@ class Vault
     @headers.each do |key, value|
       request[key] = value
     end
-    request.set_form_data(data)
+    request.body = data.to_json
     response = http.request(request)
     err_check(response)
     response
@@ -155,8 +162,8 @@ class Vault
 
   def get_token(auth_path)
     # @summary Use the Puppet host certificate and private key to authenticate to Vault
-    # @param auth_path The Vault path of the "cert" authentication type for Puppet
-    # @return A Vault token as a string
+    # @param [String] :auth_path The Vault path of the "cert" authentication type for Puppet
+    # @return [String] A Vault token.
 
     # Get the client certificate and private key files for Vault authenticaion
     hostcert = File.expand_path(Puppet.settings[:hostcert])
@@ -172,16 +179,16 @@ class Vault
     begin
       token = JSON.parse(response.body)['auth']['client_token']
     rescue
-      raise Puppet::Error, 'Unable to parse client_token from vault response'
+      raise Puppet::Error, 'Unable to parse client_token from vault response.'
     end
-    raise Puppet::Error, 'No client_token found' if token.nil?
+    raise Puppet::Error, 'No client_token found.' if token.nil?
     token
   end
 
   def get_ca_file(ca_trust)
     # @summary Try known paths for trusted CA certificates when not specified
-    # @param ca_trust The path to a trusted certificate authority file. If nil, some defaults are attempted
-    # @return The verified file path to a trusted certificate authority file
+    # @param [String] :ca_trust The path to a trusted certificate authority file. If nil, some defaults are attempted.
+    # @return [String] The verified file path to a trusted certificate authority file.
     ca_file = if ca_trust && File.exist?(ca_trust)
                 ca_trust
               elsif File.exist?('/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem')
@@ -191,7 +198,7 @@ class Vault
               else
                 nil
               end
-    raise Puppet::Error, 'Failed to get the trusted CA certificate file' if ca_file.nil?
+    raise Puppet::Error, 'Failed to get the trusted CA certificate file.' if ca_file.nil?
     ca_file
   end
 end

@@ -2,9 +2,9 @@
 #
 # @param vault_uri The complete URL of the the Hashicorp Vault certificate issuing role API endpoint
 #
-# @param auth_path The Vault path of the authentication provider used by Puppet certificates
+# @param auth_path The Vault mount path of the authentication provider used by Puppet certificates. ('path' shown by 'vault secrets list' command)
 #
-# @param days_before_renewal The number of days before expiration where the host certificate will be re-issued
+# @param days_before_renewal The number of days before expiration where the host certificate will be re-issued.
 #
 # @param cert_data A hash of values to be submitted with the certificate request.  The hash contents should
 #   adhere to the keys/values supported/permitted by the PKI role and policy.  Basic default values are
@@ -33,8 +33,9 @@ class vault_secrets (
   }
   $x = $vault_cert.dig('days_remaining')
   $days_remaining = $x ? {
-    undef   => 0,
-    default => $x,
+    undef     => 0,
+    'unknown' => 0,
+    default   => $x,
   }
 
   if !$valid or $days_remaining < $days_before_renewal {

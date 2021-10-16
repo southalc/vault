@@ -1,5 +1,6 @@
-# @summary Return the value from a Vault key/value secrets engine from a given path and key
-#
+# frozen_string_literal: true
+
+# Return the value from a Vault key/value secrets engine from a given path and key
 Puppet::Functions.create_function(:vault_key) do
   # @param vault_uri The complete API path to a Vault key/value secret
   # @param auth_path The Vault mount path of the "cert" authentication type used with Puppet certificates.

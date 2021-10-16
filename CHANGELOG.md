@@ -1,5 +1,10 @@
 # Changelog
 
+## Release 0.3.2
+
+Bugfix - Update post method in the Vault ruby class to use request.body instead of request.set_form_data
+Bugfix - The puppet "vault_secrets" class should handle "unknown" as the value of "days_remaining"
+
 ## Release 0.3.1
 
 - Refactor shared functions as a ruby class and update references

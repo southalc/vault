@@ -1,6 +1,8 @@
-# @summary Obtain a host certificate from a Vault PKI secrets engine
-#
+# frozen_string_literal: true
+
+# Obtain a host certificate from a Vault PKI secrets engine
 Puppet::Functions.create_function(:vault_cert) do
+  # @summary Obtain a host certificate from a Vault PKI secrets engine
   # @param vault_uri The complete API path to a Vault PKI role for issuing certificates.
   # @param auth_path The Vault mount path of the "cert" authentication type used with Puppet certificates.
   # @param data A hash of values to be submitted with a certificate request.  The hash contents

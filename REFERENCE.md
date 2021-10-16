@@ -17,7 +17,7 @@
 
 * [`vault_cert`](#vault_cert): Obtain a host certificate from a Vault PKI secrets engine
 * [`vault_hash`](#vault_hash): Return a hash from a Vault key/value secrets engine path
-* [`vault_hiera_hash`](#vault_hiera_hash): Custom hiera back-end for Hashicorp Vault key/value secrets engine
+* [`vault_hiera_hash`](#vault_hiera_hash): Custom hiera back-end for Hashicorp Vault key/value secrets engines v1 and v2
 * [`vault_key`](#vault_key): Return the value from a Vault key/value secrets engine from a given path and key
 
 ## Classes
@@ -51,13 +51,13 @@ The complete URL of the the Hashicorp Vault certificate issuing role API endpoin
 
 Data type: `String`
 
-The Vault path of the authentication provider used by Puppet certificates
+The Vault mount path of the authentication provider used by Puppet certificates. ('path' shown by 'vault secrets list' command)
 
 ##### `days_before_renewal`
 
 Data type: `Integer[1, 30]`
 
-The number of days before expiration where the host certificate will be re-issued
+The number of days before expiration where the host certificate will be re-issued.
 
 Default value: `3`
 
@@ -296,7 +296,7 @@ Obtain a host certificate from a Vault PKI secrets engine
 
 #### `vault_cert(String $vault_uri, String $auth_path, Hash $data, Optional[Integer] $timeout, Optional[String] $ca_trust)`
 
-The vault_cert function.
+Obtain a host certificate from a Vault PKI secrets engine
 
 Returns: `Hash` The returned hash contains the certificate, private key, and supporting data
 
@@ -339,7 +339,7 @@ Return a hash from a Vault key/value secrets engine path
 
 #### `vault_hash(String $vault_uri, String $auth_path, Optional[String] $version, Optional[Integer] $timeout, Optional[String] $ca_trust)`
 
-The vault_hash function.
+Return a hash from a Vault key/value secrets engine path
 
 Returns: `Hash` Contains all the key/value pairs from the given path.
 
@@ -377,11 +377,11 @@ The path to the trusted certificate authority chain file.  Some OS defaults will
 
 Type: Ruby 4.x API
 
-Custom hiera back-end for Hashicorp Vault key/value secrets engine
+Custom hiera back-end for Hashicorp Vault key/value secrets engines v1 and v2
 
 #### `vault_hiera_hash(Hash $options, Puppet::LookupContext $context)`
 
-The vault_hiera_hash function.
+Custom hiera back-end for Hashicorp Vault key/value secrets engines v1 and v2
 
 Returns: `Hash` All key/value pairs from the given Vault path will be returned to hiera
 
@@ -389,13 +389,22 @@ Returns: `Hash` All key/value pairs from the given Vault path will be returned t
 
 Data type: `Hash`
 
-Hash containing:
+uri, ca_trust, token_file, auth_path, version, timeout, context
+
+Options:
+
+* **:uri** `String`: Required. The complete URL to the API endpoint for Hashicorp Vault key/value secrets.
+* **:ca_trust** `String`: Optional path to a trusted CA certificate chain file.  Will try system defaults for RedHat/Debian if not set.
+* **:token_file** `String`: The path to a file that contains a Vault token. When not defined it will try PKI auth with Puppet cert.
+* **:auth_path** `String`: Optional. The Vault path for the "cert" authentication type used with Puppet certificates.
+* **:version** `String`: The Vault key/value secrets engine will always use 'v1' unless set to 'v2' here.
+* **:timeout** `Integer`: Optional value for tuning HTTP timeouts. Default is 5 seconds.
 
 ##### `context`
 
 Data type: `Puppet::LookupContext`
 
-Default parameter used for caching
+
 
 ### `vault_key`
 
@@ -405,7 +414,7 @@ Return the value from a Vault key/value secrets engine from a given path and key
 
 #### `vault_key(String $vault_uri, String $auth_path, String $key, Optional[String] $version, Optional[Integer] $timeout, Optional[String] $ca_trust)`
 
-The vault_key function.
+Return the value from a Vault key/value secrets engine from a given path and key
 
 Returns: `String` The value of the secret from the @vault_uri and @key
 

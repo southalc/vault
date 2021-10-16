@@ -15,6 +15,7 @@ Puppet::Type.type(:vault_cert).provide(:vault_cert) do
   end
 
   def self.instances
+    # @summary Enables resource discovery for the vault_cert custom type.
     instances = []
     cert_dir = Facter.value(:vault_cert_dir)
     cert_filenames = Dir.glob("#{cert_dir}/*.json")
@@ -103,6 +104,7 @@ Puppet::Type.type(:vault_cert).provide(:vault_cert) do
   end
 
   def issue_cert
+    # @summary Request a certificate from the Vault API.
     Puppet.info("Requesting certificate #{@resource[:name]}")
     ca_trust = self.class.get_ca_trust
     connection = {
@@ -145,6 +147,7 @@ Puppet::Type.type(:vault_cert).provide(:vault_cert) do
   end
 
   def expires_soon_or_expired
+    # @summary Determine the certificate expiration date.
     time_now = Time.now.to_i
     expiry_time = @property_hash[:expiration]
     renewal_threshold_seconds = @resource[:renewal_threshold] * 3600 * 24
