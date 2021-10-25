@@ -2,7 +2,7 @@
 #
 # @param vault_uri The complete URL of the the Hashicorp Vault certificate issuing role API endpoint
 #
-# @param auth_path The Vault mount path of the authentication provider used by Puppet certificates. ('path' shown by 'vault secrets list' command)
+# @param auth_path The Vault mount path of the authentication provider used by Puppet certificates. ('path' shown by 'vault secrets list')
 #
 # @param days_before_renewal The number of days before expiration where the host certificate will be re-issued.
 #

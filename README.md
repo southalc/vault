@@ -225,6 +225,20 @@ hierarchy:
       ca_trust: "/etc/ssl/certs/ca-certificates.crt"
 ```
 
+### Vault agent for use with the hiera backend
+
+A Vault agent can be used with an AppRole to automatically obtain and indefinately renew
+a Vault token.  This is well suited for use with the "vault_hiera_hash" backend on the
+Puppet server.  The module includes defined type "vault_secrets::approle_agent" that can
+install Vault and configure the agent, but the AppRole roleId and secretId parameters for
+the defined type are sensitive values that would typcially be protected by storing them
+in Vault.  To deploy the Vault agent on the Puppet server itself, run the plan and supply
+the parameter values.  Once the plan has run and the Vault agent has written the token to
+the sink file, "vault_hiera_hash" can be configured to use the sink file as "token_file".
+
+Note that the "vault_secrets::approle_agent" type has only been tested on Linux systems
+and the automatic Vault installation will only work for RedHat and Debian variants.
+
 ### Vault-issued certificates directly to nodes
 
 Include the `vault_secrets::vault_cert` class to ensure required directories are created

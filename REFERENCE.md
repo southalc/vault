@@ -9,6 +9,11 @@
 * [`vault_secrets`](#vault_secrets): Issue and renew PKI certificates from Hashicorp Vault
 * [`vault_secrets::vault_cert`](#vault_secretsvault_cert): Manage paths and files for Vault certificates
 
+### Defined types
+
+* [`vault_secrets::approle_agent`](#vault_secretsapprole_agent): Configure a Vault agent for use with an existing AppRole and save the
+resulting token to a sink file at "/run/vault-${owner}/${title}.token"
+
 ### Resource types
 
 * [`vault_cert`](#vault_cert): A type representing a certificate issued by Hashicorp Vault
@@ -19,6 +24,10 @@
 * [`vault_hash`](#vault_hash): Return a hash from a Vault key/value secrets engine path
 * [`vault_hiera_hash`](#vault_hiera_hash): Custom hiera back-end for Hashicorp Vault key/value secrets engines v1 and v2
 * [`vault_key`](#vault_key): Return the value from a Vault key/value secrets engine from a given path and key
+
+### Plans
+
+* [`vault_secrets::approle_agent`](#vault_secretsapprole_agent): Plan configures a Vault agent for use with an existing AppRole
 
 ## Classes
 
@@ -51,7 +60,7 @@ The complete URL of the the Hashicorp Vault certificate issuing role API endpoin
 
 Data type: `String`
 
-The Vault mount path of the authentication provider used by Puppet certificates. ('path' shown by 'vault secrets list' command)
+The Vault mount path of the authentication provider used by Puppet certificates. ('path' shown by 'vault secrets list')
 
 ##### `days_before_renewal`
 
@@ -86,6 +95,68 @@ Data type: `Any`
 Clean up certificate files no longer managed by puppet.
 
 Default value: ``false``
+
+## Defined types
+
+### `vault_secrets::approle_agent`
+
+Configure a Vault agent for use with an existing AppRole and save the
+resulting token to a sink file at "/run/vault-${owner}/${title}.token"
+
+* **Note** The defined type name permits only alpha-numeric characters and underscores.
+
+* **See also**
+  * https://www.vaultproject.io/docs/auth/approle
+
+#### Examples
+
+##### Create a Vault agent for use with vault_hiera_hash
+
+```puppet
+vault_secrets::approle_agent { 'puppetserver':
+   vault_addr => 'https://vault.example.com:8200',
+   role_id    => 'your_roleId_guid',
+   secret_id  => 'your_secretId_guid',
+   owner      => 'pe-puppet',
+ }
+```
+
+#### Parameters
+
+The following parameters are available in the `vault_secrets::approle_agent` defined type.
+
+##### `vault_addr`
+
+Data type: `String`
+
+The URL of the Vault service.
+
+##### `role_id`
+
+Data type: `String`
+
+The RoleID of the Vault AppRole.
+
+##### `secret_id`
+
+Data type: `String`
+
+The SecretID of the Vault AppRole.
+
+##### `owner`
+
+Data type: `String`
+
+The user name that will own the Vault agent sink file.
+
+##### `install_vault`
+
+Data type: `Boolean`
+
+Install Vault using the "hashi_stack::repo" class.  Use
+hiera to set parameters for customizing the installation.
+
+Default value: ``true``
 
 ## Resource types
 
@@ -453,4 +524,53 @@ Value in seconds to wait for a response from Vault
 Data type: `Optional[String]`
 
 The path to the trusted certificate authority chain file.  Some OS defaults will be attempted if nil.
+
+## Plans
+
+### `vault_secrets::approle_agent`
+
+Plan configures a Vault agent for use with an existing AppRole
+
+#### Parameters
+
+The following parameters are available in the `vault_secrets::approle_agent` plan.
+
+##### `vault_addr`
+
+Data type: `String`
+
+The URL of the Vault service.
+
+##### `role_id`
+
+Data type: `Sensitive`
+
+String - The RoleID of the Vault AppRole.
+
+##### `secret_id`
+
+Data type: `Sensitive`
+
+String - The SecretID of the Vault AppRole.
+
+##### `owner`
+
+Data type: `String`
+
+The user name that will own the Vault agent sink file.
+
+##### `install_vault`
+
+Data type: `Boolean`
+
+Install Vault using the "hashi_stack::repo" class.  Set
+parameters for "hashi_stack::repo" in hiera to customize the installation.
+
+Default value: ``true``
+
+##### `targets`
+
+Data type: `TargetSpec`
+
+
 

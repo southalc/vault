@@ -1,5 +1,11 @@
 # Changelog
 
+## Release 0.4.0
+
+- Add defined type "vault_secrets::approle_agent" to configure a Vault agent for use with an
+  existing AppRole and save the Vault token to a fixed sink file.
+- Add the plan "vault_secrets::approle_agent" that applies defined type on targets
+
 ## Release 0.3.2
 
 Bugfix - Update post method in the Vault ruby class to use request.body instead of request.set_form_data
