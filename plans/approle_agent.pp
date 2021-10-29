@@ -1,4 +1,6 @@
 # Plan configures a Vault agent for use with an existing AppRole
+# @param action Install or remove the specified Vault agent service
+# @param application Used as a component resource names. The Vault agent sink is: "/run/vault-${owner}/${application}.token"
 # @param vault_addr The URL of the Vault service.
 # @param role_id String - The RoleID of the Vault AppRole.
 # @param secret_id String - The SecretID of the Vault AppRole.
@@ -8,19 +10,25 @@
 #
 plan vault_secrets::approle_agent (
   TargetSpec $targets,
+  String $application,
   String $vault_addr,
   Sensitive $role_id,
   Sensitive $secret_id,
   String $owner,
-  Boolean $install_vault = true,
+  Enum['install', 'remove'] $action = 'install',
+  Boolean $install_vault            = true,
 ) {
-  if $install_vault {
-    # Collects facts on targets and update the inventory
-    run_plan('facts', 'targets' => $targets)
-  }
+  # Collect facts on targets
+  run_plan('facts', 'targets' => $targets)
 
   $results = apply($targets, '_catch_errors' => true) {
-    Vault_secrets::Approle_agent { 'puppetserver':
+    # Would rather have an 'ensure' parameter for the plan, but it does not work
+    $ensure = $action ? {
+      'remove' => 'absent',
+      default  => 'present',
+    }
+    Vault_secrets::Approle_agent { $application:
+      ensure        => $ensure,
       vault_addr    => $vault_addr,
       role_id       => $role_id.unwrap,
       secret_id     => $secret_id.unwrap,
@@ -30,7 +38,13 @@ plan vault_secrets::approle_agent (
   }
 
   $results.each |$result| {
-    out::message("  Target: ${result.target}, ${result.message}")
+    if $result.ok {
+      $result.report['logs'].each |$log| {
+        out::message("${log['source']}: ${log['message']}")
+      }
+      out::message("Target summary: ${result.target}, ${result.message}")
+    } else {
+      out::message("${result.error} - ${result.message}")
+    }
   }
 }
-

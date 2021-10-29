@@ -227,17 +227,84 @@ hierarchy:
 
 ### Vault agent for use with the hiera backend
 
-A Vault agent can be used with an AppRole to automatically obtain and indefinately renew
-a Vault token.  This is well suited for use with the "vault_hiera_hash" backend on the
-Puppet server.  The module includes defined type "vault_secrets::approle_agent" that can
-install Vault and configure the agent, but the AppRole roleId and secretId parameters for
-the defined type are sensitive values that would typcially be protected by storing them
-in Vault.  To deploy the Vault agent on the Puppet server itself, run the plan and supply
-the parameter values.  Once the plan has run and the Vault agent has written the token to
-the sink file, "vault_hiera_hash" can be configured to use the sink file as "token_file".
+The Vault AppRole method is used by applications to authenticate to Vault and obtain
+a token.  An AppRole defines a token policy and will issue a token when an application
+authenticates to the AppRole using the role ID and secret ID.  The following steps will
+enable an AppRole on Vault for use with hiera lookup from the Puppet server:
 
-Note that the "vault_secrets::approle_agent" type has only been tested on Linux systems
-and the automatic Vault installation will only work for RedHat and Debian variants.
+1) Enable the AppRole authentiation method:
+```bash
+vault auth enable approle
+```
+
+2) Define an app role by specifying the token policies and TTL (period).  Note that a periodic
+token is the only type that may be renewed indefinately, which is what we want for long-running
+application services like hiera on Puppet.  We will re-use the "puppet" policy defined in the
+previous Vault setup steps:
+```bash
+vault write auth/approle/role/puppet policies="puppet" period="24h"
+```
+
+3) Get the role ID for the defined role:
+```bash
+vault read -format=json auth/approle/role/puppet/role-id | jq -r ".data.role_id"
+```
+
+4) Generate a secret ID for the role:
+```bash
+vault write -f -format=json auth/approle/role/puppet/secret-id | jq -r ".data.secret_id"
+```
+
+5) Authenticating to the AppRole with the role ID and secret ID results in a token being issued
+per the assigned role policy.  This step is shown just for demonstration purposes:
+```bash
+vault write auth/approle/login role_id=<role_id> secret_id=<secret_id>
+```
+
+With the Vault AppRole in place we can configure the Puppet server to perform hiera lookups
+from Vault using a token issed by the AppRole to a Vault agent.  This is more efficient than
+using Puppet certificates to authenticate to Vault for every request.  To simplify configuration
+of the Vault agent, the module includes the defined type "vault_secrets::approle_agent" and
+a plan of the same name.  The plan and type can install Vault and configure the Vault agent using
+an existing AppRole.  The Vault agent will be configured to run as a systemd service to ensure
+it starts automatically on boot-up and the token will be available for hiera lookups. The Vault
+agent service also handles renewal of the token as needed.
+
+You can use the defined type in Puppet manifests to deploy Vault agents to nodes, but the
+"role_id" and "secret_id" values are sensitive and should be probably be stored in Vault.
+To deploy the Vault agent to the puppet server itself without storing these values in hiera,
+run the plan either with Bolt or from the PE console.
+
+If you haven't used [Bolt](https://puppet.com/docs/bolt/latest/bolt.html) to run plans before, you'll need to:
+
+1. Initialize a project directory with the required modules:
+```bash
+mkdir approle_agent
+cd approle_agent
+bolt project init approle_agent --modules southalc/vault_secrets
+```
+
+2. Update the project [inventory.yaml](https://puppet.com/docs/bolt/latest/inventory_files.html)
+to include the targets you want to manage.
+
+3. Run the plan.  This example configures a Vault agent on server "puppet.example.com" with the
+sink file owner set to "pe-puppet".  The sink file is where the Vault token will be saved and
+uses a fixed path of "/run/vault-${owner}/${application}.token" where "owner" and "application"
+are the values passed to the plan:
+```
+bolt plan run vault_secrets::approle_agent \
+ --targets puppet.example.com \
+ 'vault_addr=https://vault.example.com:8200' \
+ role_id=<YOUR_ROLE_ID> \
+ secret_id=<YOUR_SECRET_ID> \
+ application=puppetserver \
+ owner=pe-puppet \
+ --run-as root 
+```
+
+Note that the "vault_secrets::approle_agent" type and plan rely on systemd and will only
+work on Linux systems.  Also, automatic Vault installation will only work for RedHat and Debian
+variants supported by [hashi_stack](https://forge.puppet.com/modules/puppet/hashi_stack).
 
 ### Vault-issued certificates directly to nodes
 

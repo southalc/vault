@@ -125,6 +125,14 @@ vault_secrets::approle_agent { 'puppetserver':
 
 The following parameters are available in the `vault_secrets::approle_agent` defined type.
 
+##### `ensure`
+
+Data type: `Enum['present', 'absent']`
+
+Add or remove the Vault agent configuration.
+
+Default value: `'present'`
+
 ##### `vault_addr`
 
 Data type: `String`
@@ -534,6 +542,20 @@ Plan configures a Vault agent for use with an existing AppRole
 #### Parameters
 
 The following parameters are available in the `vault_secrets::approle_agent` plan.
+
+##### `action`
+
+Data type: `Enum['install', 'remove']`
+
+Install or remove the specified Vault agent service
+
+Default value: `'install'`
+
+##### `application`
+
+Data type: `String`
+
+Used as a component resource names. The Vault agent sink is: "/run/vault-${owner}/${application}.token"
 
 ##### `vault_addr`
 
