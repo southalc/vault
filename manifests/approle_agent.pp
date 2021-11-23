@@ -183,8 +183,13 @@ define vault_secrets::approle_agent (
       ensure => 'absent',
     }
 
-    file { [$approle_id_file, $approle_secret_file, $agent_config_file]:
-      ensure => 'absent',
+    file { [$sink_file, $approle_id_file, $approle_secret_file, $agent_config_file]:
+      ensure  => 'absent',
+      require => [
+        Systemd::Unit_file["${title}-vault-agent.service"],
+        Systemd::Unit_file["${title}-vault-token.service"],
+        Systemd::Unit_file["${title}-vault-token.path"],
+      ],
     }
 
     systemd::unit_file { [

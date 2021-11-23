@@ -1,5 +1,10 @@
 # Changelog
 
+## Release 0.4.1
+
+- Update approle_agent so the systemd "vault-token" service will use "oneshot" instead of
+  "simple".  Contributed by dmaes 
+
 ## Release 0.4.0
 
 - Add defined type "vault_secrets::approle_agent" to configure a Vault agent for use with an
@@ -38,3 +43,4 @@ Bugfix - Set 'show_diff' to false when updating certificate and private key file
 ## Release 0.1.0
 
 Initial release - See README for features
+

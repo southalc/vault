@@ -11,29 +11,32 @@
 
 ## Description
 
-This module provides functions and type/providers to integrate Hashicorp Vault with Puppet and uses the main module class to enable
-issuing and renewing host certificates from a Vault PKI secrets engine.  The module has no dependencies other than
-'puppetlabs-stdlib' and requires no extra ruby gems on the Puppet server or agents.  If you only want to use the
-functions without issuing host certificates from Vault, add the module to an environment without assigning it to
-any nodes.
+This module provides functions, types, and providers to integrate Hashicorp Vault with Puppet, and uses the main module
+class to enable issuing and renewing host certificates from a Vault PKI secrets engine.  If you only want to use the
+functions without issuing host certificates from Vault, add the module to an environment without assigning it to any nodes.
 
-The custom hiera backend `vault_hiera_hash` enables the puppet server to use a Vault key/value secrets engine as
-a hiera data_hash.  This allows storing multiple key/value pairs on a given Vault path, then using it from hiera
-much like local YAML files.  The function supports both v1 and v2 of the Vault key/value secrets engine and is
-useful to easily separate secrets from other version controlled hiera data.
+The custom hiera backend `vault_hiera_hash` enables the puppet server to use a Vault key/value secrets engine as a hiera
+data_hash.  This allows storing multiple key/value pairs on a given Vault path and using it from hiera much like local
+YAML files.  The function supports both v1 and v2 of the Vault key/value secrets engine and is useful to easily separate
+secrets from other version controlled hiera data. The `vault_secrets::approle_agent` plan can be used to obtain a Vault
+token for use with hiera, or the Puppet certificate can be used for certificate authentication to Vault.
 
-The `vault_hash` and `vault_key` functions also support Vault key/value secrets engines version 1 and 2, and can
-be used in manifests to get secrets from Vault.  With Puppet agents 6 and later you can also use
-[deferred functions](https://puppet.com/docs/puppet/latest/deferred_functions.html) to enable clients to get
-secrets directly from Vault without passing them through the Puppet server.
+The `vault_hash` and `vault_key` functions also support Vault key/value secrets engines version 1 and 2 and can be used
+in manifests to get secrets from Vault.  With Puppet agents 6 and later you can also use
+[deferred functions](https://puppet.com/docs/puppet/latest/deferred_functions.html) to enable clients to get secrets
+directly from Vault without passing them through the Puppet server in a catalog.
 
-The `vault_cert` resource type can be used to manage TLS certificates for use by other applications.
-These are issued by Vault directly to agents (private keys are not stored on puppet servers or in the catalog),
-and renewed automatically as needed.
+The `vault_cert` custom resource type can be used to manage TLS certificates for use by other applications.  These are
+issued by Vault directly to agents (private keys are not stored on puppet servers or in the catalog), and renewed
+automatically as needed.  Note that this requires puppet agents to authenticate to Vault using the agent certificate
+and request a Vault certificate from a configured role on a PKI secrets engine.
 
 ## Setup
 
-Obviously you need to have a working Hashicorp Vault deployment first.  Complete the following steps on the Vault server:
+The module does not require any extra ruby gems on the Puppet server or agents.  Obviously you need to have a working
+Hashicorp Vault deployment first.  The following describes a basic Vault configuration to support puppet integration.
+
+Complete the following steps on the Vault server:
 
 1. Enable a kv secrets engine on path 'puppet/'.  This example is for version 1 of the k/v engine:
 ```
@@ -43,11 +46,12 @@ vault secrets enable -path=puppet -description="Puppet data" -version=1 kv
 2. Use the Vault UI or command line to create a secret under the 'puppet/' path.  This example will use the name "common"
 as the secret name for storing key/value secrets common to all nodes.
 
-3. Configure Vault to enable authentication with certificates issued by the Puppet certificate authority.  From a Puppet
-node you can reference the Puppet CA certificate from: '/etc/puppetlabs/puppet/ssl/certs/ca.pem'.  When using PKI
+3. Configure Vault to enable authentication with certificates issued by the puppet certificate authority.  From a puppet
+node you can reference the puppet CA certificate from: '/etc/puppetlabs/puppet/ssl/certs/ca.pem'.  When using PKI
 authentication, the module functions will authenticate every Vault request independently, so use a low "ttl" value to
-keep from building up many active Vault tokens.  Alternatively, you can generate a long-term Vault token for use with
-the `vault_hiera_hash` function as a way to reduce overhead during hiera lookups.
+keep from building up many active Vault tokens.  You can skip this step if you only want to use Vault as a backend for
+hiera and will not be using deferred functions or the `vault_cert` type.
+
 ```
 vault auth enable -path=puppet-pki -description="PKI authentication with Puppet certificates" cert
 vault write auth/puppet-pki/certs/puppetCA \
@@ -55,13 +59,6 @@ vault write auth/puppet-pki/certs/puppetCA \
   policies=puppet \
   certificate=@/etc/puppetlabs/puppet/ssl/certs/ca.pem \
   ttl=60
-```
-
-If you don't want to use deferred functions and just want to use Vault with hiera, it's recommended to manually create
-a Vault token.  This avoids the overhead of certificate authentication with every hiera lookup.  Set up a Vault policy
-for Puppet first per the example in setup step #5, then create the Vault token:
-```
-vault token create -display-name="Puppet hiera lookups" -orphan -policy=puppet
 ```
 
 4. Optionally enable a PKI secrets engine on Vault to serve as a certificate authority and get dynamic provisioning of X.509
@@ -144,6 +141,7 @@ Vault path "puppet/nodes" and the specific Vault path "puppet/common".  The "pki
 to enable Puppet to obtain PKI certificates from the configured role on the Vault certificate authority.  Applying this policy
 to the 'puppet-pki' authentication path will enable any Puppet certificate to authenticate and access these Vault paths.  Review
 the Vault documentation for managing access to Vault with policies. Save the policy to a file:
+
 ```
 path "puppet/nodes/*" {
   capabilities = ["read"]
@@ -196,8 +194,7 @@ notify { 'deferred_example' :
 Configure an environment to use the custom hiera backend by using the 'vault_hiera_hash' function for the data_hash.
 This enables the Puppet server to lookup all key/value pairs stored on a Vault secrets path in a single lookup.  You
 can also pass an array of 'uris' that may include variable references to be interpolated at runtime.  Note that each uri
-results in a separate Vault request and will incur some overhead on the Puppet server.  The 'options' hash requires a
-'ca_trust' value, which is the certificate authority chain used to validate the TLS connection to Vault.
+results in a separate Vault request and will incur some overhead on the Puppet server.
 ```
 hierarchy:
   - name: "Secrets from Vault"
@@ -206,7 +203,6 @@ hierarchy:
     options:
       timeout: 3
       auth_path: "puppet-pki"
-      ca_trust: "/etc/ssl/certs/ca-certificates.crt"
 ```
 Example configuration using Vault for hiera data using multiple search paths and a pre-staged Vault token to avoid
 authentication overhead with each lookup.  When using a Vault token, ensure the 'token_file' has read permissions by
@@ -220,9 +216,7 @@ hierarchy:
       - "https://vault.example.com:8200/v1/puppet/nodes/%{fqdn}"  # Node specific secrets
       - "https://vault.example.com:8200/v1/puppet/common"         # Secrets common to all nodes
     options:
-      timeout: 3
-      token_file: "/run/puppet/vault-token"                       # File contains the Vault token
-      ca_trust: "/etc/ssl/certs/ca-certificates.crt"
+      token_file: "/run/vault-puppet/puppetserver.token"          # Sink file from 'vault_secrets::approle_agent' plan
 ```
 
 ### Vault agent for use with the hiera backend
@@ -232,12 +226,12 @@ a token.  An AppRole defines a token policy and will issue a token when an appli
 authenticates to the AppRole using the role ID and secret ID.  The following steps will
 enable an AppRole on Vault for use with hiera lookup from the Puppet server:
 
-1) Enable the AppRole authentiation method:
+1. Enable the AppRole authentiation method:
 ```bash
 vault auth enable approle
 ```
 
-2) Define an app role by specifying the token policies and TTL (period).  Note that a periodic
+2. Define an app role by specifying the token policies and TTL (period).  Note that a periodic
 token is the only type that may be renewed indefinately, which is what we want for long-running
 application services like hiera on Puppet.  We will re-use the "puppet" policy defined in the
 previous Vault setup steps:
@@ -245,17 +239,17 @@ previous Vault setup steps:
 vault write auth/approle/role/puppet policies="puppet" period="24h"
 ```
 
-3) Get the role ID for the defined role:
+3. Get the role ID for the defined role:
 ```bash
 vault read -format=json auth/approle/role/puppet/role-id | jq -r ".data.role_id"
 ```
 
-4) Generate a secret ID for the role:
+4. Generate a secret ID for the role:
 ```bash
 vault write -f -format=json auth/approle/role/puppet/secret-id | jq -r ".data.secret_id"
 ```
 
-5) Authenticating to the AppRole with the role ID and secret ID results in a token being issued
+5. Authenticating to the AppRole with the role ID and secret ID results in a token being issued
 per the assigned role policy.  This step is shown just for demonstration purposes:
 ```bash
 vault write auth/approle/login role_id=<role_id> secret_id=<secret_id>
@@ -298,7 +292,7 @@ bolt plan run vault_secrets::approle_agent \
  role_id=<YOUR_ROLE_ID> \
  secret_id=<YOUR_SECRET_ID> \
  application=puppetserver \
- owner=pe-puppet \
+ owner=puppet \
  --run-as root 
 ```
 
