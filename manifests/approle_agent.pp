@@ -154,12 +154,10 @@ define vault_secrets::approle_agent (
     }
 
     systemd::unit_file { "${title}-vault-token.service":
-      enable  => true,
-      active  => true,
       content => @("END"),
                  # FILE MANAGED BY PUPPET
                  [Service]
-                 Type=simple
+                 Type=oneshot
                  ExecStart=/bin/chown ${owner} ${sink_file}
                  |END
     }
