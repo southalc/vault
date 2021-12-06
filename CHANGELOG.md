@@ -1,5 +1,9 @@
 # Changelog
 
+## Release 0.4.2
+
+- Update the 'vault_cert' provider handling for certificate expiration.  Contributed by optiz0r.
+
 ## Release 0.4.1
 
 - Update approle_agent so the systemd "vault-token" service will use "oneshot" instead of
