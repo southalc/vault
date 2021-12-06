@@ -226,6 +226,10 @@ Puppet::Type.type(:vault_cert).provide(:vault_cert) do
     @property_flush[:key_mode] = value
   end
 
+  def expiration=(value)
+    # Property should be read only, do not change
+  end
+
   def ca_chain=(value); end
 
   def cert=(value); end
