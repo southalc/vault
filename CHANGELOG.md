@@ -1,5 +1,9 @@
 # Changelog
 
+## Release 0.4.3
+
+Bugfix - Use gsub instead of delete_prefix to support older puppet/ruby versions.  Contributed by dmaes
+
 ## Release 0.4.2
 
 - Update the 'vault_cert' provider handling for certificate expiration.  Contributed by optiz0r.
