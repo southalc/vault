@@ -172,7 +172,7 @@ class Vault
     http.key = OpenSSL::PKey::RSA.new(File.read(hostprivkey))
 
     # Submit the request to the auth_path login endpoint
-    response = post("/v1/auth/#{auth_path.gsub(/\/$/, '')}/login")
+    response = post("/v1/auth/#{auth_path.gsub(%r{/$}, '')}/login")
     err_check(response)
 
     # Extract the token value from the response
