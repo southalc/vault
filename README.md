@@ -322,11 +322,11 @@ include vault_secrets::vault_cert
 
 vault_cert { 'test':
   ensure            => present,
-  vault_uri         => 'https://vault.example.com:8200/pki/issue/role',
+  vault_uri         => 'https://vault.example.com:8200/v1/pki/issue/role',
   cert_data         => {
     'common_name' => 'test.example.com',
-    'alt_names'   => ['alias.exmaple.com', 'localhost'].join('\n'),
-    'ip_sans'     => [$::facts['networking']['ip'], '127.0.0.1'],
+    'alt_names'   => ['alias.exmaple.com', 'localhost'].join(','),
+    'ip_sans'     => [$::facts['networking']['ip'], '127.0.0.1'].join(','),
     'ttl'         => '2160h', # 90 days
   },
   # Optional
