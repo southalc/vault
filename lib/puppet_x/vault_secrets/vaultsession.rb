@@ -6,7 +6,7 @@ require 'openssl'
 require 'json'
 
 # Class provides methods to interface with Hashicorp Vault
-class Vault
+class VaultSession
   def initialize(args)
     # @summary Provide methods to interface with Hashicorp Vault
     # @param [Hash] args Configuration options for the Vault connection.

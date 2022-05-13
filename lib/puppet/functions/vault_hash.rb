@@ -16,7 +16,7 @@ Puppet::Functions.create_function(:vault_hash) do
     optional_param 'String', :ca_trust
   end
 
-  require "#{File.dirname(__FILE__)}/../../puppet_x/vault_secrets/vault.rb"
+  require "#{File.dirname(__FILE__)}/../../puppet_x/vault_secrets/vaultsession.rb"
 
   def vault_hash(vault_uri, auth_path, version = 'v1', timeout = 5, ca_trust = nil)
     connection = {
@@ -27,7 +27,7 @@ Puppet::Functions.create_function(:vault_hash) do
     }
 
     # Use the Vault class for the lookup
-    vault = Vault.new(connection)
+    vault = VaultSession.new(connection)
     vault.get(URI(vault_uri).path, version)
   end
 end

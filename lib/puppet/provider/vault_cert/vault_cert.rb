@@ -1,7 +1,7 @@
 require 'etc'
 require 'json'
 
-require "#{File.dirname(__FILE__)}/../../../puppet_x/vault_secrets/vault.rb"
+require "#{File.dirname(__FILE__)}/../../../puppet_x/vault_secrets/vaultsession.rb"
 
 Puppet::Type.type(:vault_cert).provide(:vault_cert) do
   desc 'Issue certificates from Hashicorp Vault'
@@ -114,7 +114,7 @@ Puppet::Type.type(:vault_cert).provide(:vault_cert) do
       'timeout'   => @resource[:timeout],
     }
     # Use the Vault class for the lookup
-    vault = Vault.new(connection)
+    vault = VaultSession.new(connection)
     response = vault.post(URI(@resource[:vault_uri]).path, @resource[:cert_data])
     vault.parse_response(response)
   end

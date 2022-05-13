@@ -16,7 +16,7 @@ Puppet::Functions.create_function(:vault_hiera_hash) do
     param 'Puppet::LookupContext', :context
   end
 
-  require "#{File.dirname(__FILE__)}/../../puppet_x/vault_secrets/vault.rb"
+  require "#{File.dirname(__FILE__)}/../../puppet_x/vault_secrets/vaultsession.rb"
 
   def vault_hiera_hash(options, context)
     err_message = "The vault_hiera_hash function requires one of 'uri' or 'uris'"
@@ -38,7 +38,7 @@ Puppet::Functions.create_function(:vault_hiera_hash) do
     connection['fail_hard'] = false
 
     # Use the Vault class for the lookup
-    data = Vault.new(connection).get
+    data = VaultSession.new(connection).get
 
     context.not_found if data.empty? || !data.is_a?(Hash)
     context.cache_all(data)

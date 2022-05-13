@@ -18,7 +18,7 @@ Puppet::Functions.create_function(:vault_cert) do
     optional_param 'String', :ca_trust
   end
 
-  require "#{File.dirname(__FILE__)}/../../puppet_x/vault_secrets/vault.rb"
+  require "#{File.dirname(__FILE__)}/../../puppet_x/vault_secrets/vaultsession.rb"
 
   def vault_cert(vault_uri, auth_path, data, timeout = 5, ca_trust = nil)
     connection = {
@@ -29,7 +29,7 @@ Puppet::Functions.create_function(:vault_cert) do
     }
 
     # Use the Vault class for the lookup
-    vault = Vault.new(connection)
+    vault = VaultSession.new(connection)
     response = vault.post(URI(vault_uri).path, data)
     vault.parse_response(response)
   end

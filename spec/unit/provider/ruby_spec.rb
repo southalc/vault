@@ -290,7 +290,7 @@ describe provider_class do
       it 'raises an exception' do
         resource = type_class.new({ name: 'test', vault_uri: 'invalid', provider: provider_class.name })
         instance = provider_class.new(resource)
-        expect(Vault).to receive(:new).and_raise(Puppet::Error, 'Unable to parse a hostname from invalid')
+        expect(VaultSession).to receive(:new).and_raise(Puppet::Error, 'Unable to parse a hostname from invalid')
         # Vault.new should cause a failure before the path is calculated
         expect(instance).not_to receive(:URI)
         expect {
@@ -311,7 +311,7 @@ describe provider_class do
   provider: provider_class.name })
         instance = provider_class.new(resource)
         vault_conn = instance_double('Vault')
-        expect(Vault).to receive(:new).and_return(vault_conn)
+        expect(VaultSession).to receive(:new).and_return(vault_conn)
         expect(instance).to receive(:URI).and_return(uri)
         expect(vault_conn).to receive(:post).with('/pki/issue/cert', { 'common_name': 'test.example.com' }).and_return('response')
         expect(vault_conn).to receive(:parse_response).with('response').and_return('secrets')
