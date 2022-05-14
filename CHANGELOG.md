@@ -1,5 +1,9 @@
 # Changelog
 
+## Release 0.4.4
+
+Bugfix - Rename the "Vault" ruby class to avoid naming conflicts with Puppet module "jsok/vault".
+
 ## Release 0.4.3
 
 Bugfix - Use gsub instead of delete_prefix to support older puppet/ruby versions.  Contributed by dmaes
