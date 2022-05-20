@@ -9,6 +9,7 @@ Puppet::Functions.create_function(:vault_hiera_hash) do
   # @option options [String] :auth_path  Optional. The Vault path for the "cert" authentication type used with Puppet certificates.
   # @option options [String] :version    The Vault key/value secrets engine will always use 'v1' unless set to 'v2' here.
   # @option options [Integer] :timeout   Optional value for tuning HTTP timeouts. Default is 5 seconds.
+  # @option options [Boolean] :fail_hard Optional Raise an exception on errors when true, or return an empty hash when false. (false)
   # @param context
   # @return [Hash] All key/value pairs from the given Vault path will be returned to hiera
   dispatch :vault_hiera_hash do
@@ -25,6 +26,10 @@ Puppet::Functions.create_function(:vault_hiera_hash) do
     Puppet.debug "Using Vault URL: #{options['uri']}"
 
     connection = {}
+
+    # Hiera lookups, by default, should not fail hard when data is not found
+    connection['fail_hard'] = false
+
     options.each do |key, value|
       connection[key] = value
     end
@@ -33,9 +38,6 @@ Puppet::Functions.create_function(:vault_hiera_hash) do
       token = File.read(options['token_file']).strip
       connection['token'] = token
     end
-
-    # Hiera lookups should not fail hard when data is not found
-    connection['fail_hard'] = false
 
     # Use the Vault class for the lookup
     data = VaultSession.new(connection).get
