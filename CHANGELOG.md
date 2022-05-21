@@ -1,5 +1,10 @@
 # Changelog
 
+## Release 0.4.5
+
+- Make fail_hard configurable from vault_hiera_hash #11.  Contributed by gibbs
+- Include full URLs in failure messages instead of just the relative path.
+
 ## Release 0.4.4
 
 Bugfix - Rename the "Vault" ruby class to avoid naming conflicts with Puppet module "jsok/vault".
