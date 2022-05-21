@@ -31,7 +31,7 @@ resulting token to a sink file at "/run/vault-${owner}/${title}.token"
 
 ## Classes
 
-### `vault_secrets`
+### <a name="vault_secrets"></a>`vault_secrets`
 
 Issue and renew PKI certificates from Hashicorp Vault
 
@@ -48,21 +48,26 @@ class { 'vault_secrets':
 
 #### Parameters
 
-The following parameters are available in the `vault_secrets` class.
+The following parameters are available in the `vault_secrets` class:
 
-##### `vault_uri`
+* [`vault_uri`](#vault_uri)
+* [`auth_path`](#auth_path)
+* [`days_before_renewal`](#days_before_renewal)
+* [`cert_data`](#cert_data)
+
+##### <a name="vault_uri"></a>`vault_uri`
 
 Data type: `String`
 
 The complete URL of the the Hashicorp Vault certificate issuing role API endpoint
 
-##### `auth_path`
+##### <a name="auth_path"></a>`auth_path`
 
 Data type: `String`
 
 The Vault mount path of the authentication provider used by Puppet certificates. ('path' shown by 'vault secrets list')
 
-##### `days_before_renewal`
+##### <a name="days_before_renewal"></a>`days_before_renewal`
 
 Data type: `Integer[1, 30]`
 
@@ -70,7 +75,7 @@ The number of days before expiration where the host certificate will be re-issue
 
 Default value: `3`
 
-##### `cert_data`
+##### <a name="cert_data"></a>`cert_data`
 
 Data type: `Hash`
 
@@ -80,15 +85,17 @@ defined in module hiera.
 
 Default value: `{}`
 
-### `vault_secrets::vault_cert`
+### <a name="vault_secretsvault_cert"></a>`vault_secrets::vault_cert`
 
 Manage paths and files for Vault certificates
 
 #### Parameters
 
-The following parameters are available in the `vault_secrets::vault_cert` class.
+The following parameters are available in the `vault_secrets::vault_cert` class:
 
-##### `purge`
+* [`purge`](#purge)
+
+##### <a name="purge"></a>`purge`
 
 Data type: `Any`
 
@@ -98,7 +105,7 @@ Default value: ``false``
 
 ## Defined types
 
-### `vault_secrets::approle_agent`
+### <a name="vault_secretsapprole_agent"></a>`vault_secrets::approle_agent`
 
 Configure a Vault agent for use with an existing AppRole and save the
 resulting token to a sink file at "/run/vault-${owner}/${title}.token"
@@ -123,9 +130,16 @@ vault_secrets::approle_agent { 'puppetserver':
 
 #### Parameters
 
-The following parameters are available in the `vault_secrets::approle_agent` defined type.
+The following parameters are available in the `vault_secrets::approle_agent` defined type:
 
-##### `ensure`
+* [`ensure`](#ensure)
+* [`vault_addr`](#vault_addr)
+* [`role_id`](#role_id)
+* [`secret_id`](#secret_id)
+* [`owner`](#owner)
+* [`install_vault`](#install_vault)
+
+##### <a name="ensure"></a>`ensure`
 
 Data type: `Enum['present', 'absent']`
 
@@ -133,31 +147,31 @@ Add or remove the Vault agent configuration.
 
 Default value: `'present'`
 
-##### `vault_addr`
+##### <a name="vault_addr"></a>`vault_addr`
 
 Data type: `String`
 
 The URL of the Vault service.
 
-##### `role_id`
+##### <a name="role_id"></a>`role_id`
 
 Data type: `String`
 
 The RoleID of the Vault AppRole.
 
-##### `secret_id`
+##### <a name="secret_id"></a>`secret_id`
 
 Data type: `String`
 
 The SecretID of the Vault AppRole.
 
-##### `owner`
+##### <a name="owner"></a>`owner`
 
 Data type: `String`
 
 The user name that will own the Vault agent sink file.
 
-##### `install_vault`
+##### <a name="install_vault"></a>`install_vault`
 
 Data type: `Boolean`
 
@@ -168,7 +182,7 @@ Default value: ``true``
 
 ## Resource types
 
-### `vault_cert`
+### <a name="vault_cert"></a>`vault_cert`
 
 A type representing a certificate issued by Hashicorp Vault
 
@@ -332,42 +346,49 @@ Default value: `root`
 
 The following parameters are available in the `vault_cert` type.
 
-##### `auth_path`
+* [`auth_path`](#auth_path)
+* [`name`](#name)
+* [`provider`](#provider)
+* [`renewal_threshold`](#renewal_threshold)
+* [`timeout`](#timeout)
+* [`vault_uri`](#vault_uri)
+
+##### <a name="auth_path"></a>`auth_path`
 
 The path used to authenticate puppet agent to vault
 
 Default value: `puppet-pki`
 
-##### `name`
+##### <a name="name"></a>`name`
 
 namevar
 
 The name of the certificate
 
-##### `provider`
+##### <a name="provider"></a>`provider`
 
 The specific backend to use for this `vault_cert` resource. You will seldom need to specify this --- Puppet will usually
 discover the appropriate provider for your platform.
 
-##### `renewal_threshold`
+##### <a name="renewal_threshold"></a>`renewal_threshold`
 
 Certificate should be renewed when fewer than this many days remain before expiry
 
 Default value: `3`
 
-##### `timeout`
+##### <a name="timeout"></a>`timeout`
 
 Length of time to wait on vault connections
 
 Default value: `5`
 
-##### `vault_uri`
+##### <a name="vault_uri"></a>`vault_uri`
 
 The full URI of the vault PKI secrets engine
 
 ## Functions
 
-### `vault_cert`
+### <a name="vault_cert"></a>`vault_cert`
 
 Type: Ruby 4.x API
 
@@ -410,7 +431,7 @@ Data type: `Optional[String]`
 
 The path to the trusted certificate authority chain file.  Some OS defaults will be attempted if nil.
 
-### `vault_hash`
+### <a name="vault_hash"></a>`vault_hash`
 
 Type: Ruby 4.x API
 
@@ -452,7 +473,7 @@ Data type: `Optional[String]`
 
 The path to the trusted certificate authority chain file.  Some OS defaults will be attempted if nil.
 
-### `vault_hiera_hash`
+### <a name="vault_hiera_hash"></a>`vault_hiera_hash`
 
 Type: Ruby 4.x API
 
@@ -468,7 +489,7 @@ Returns: `Hash` All key/value pairs from the given Vault path will be returned t
 
 Data type: `Hash`
 
-uri, ca_trust, token_file, auth_path, version, timeout, context
+uri, ca_trust, token_file, auth_path, version, timeout, fail_hard
 
 Options:
 
@@ -478,6 +499,7 @@ Options:
 * **:auth_path** `String`: Optional. The Vault path for the "cert" authentication type used with Puppet certificates.
 * **:version** `String`: The Vault key/value secrets engine will always use 'v1' unless set to 'v2' here.
 * **:timeout** `Integer`: Optional value for tuning HTTP timeouts. Default is 5 seconds.
+* **:fail_hard** `Boolean`: Optional Raise an exception on errors when true, or return an empty hash when false. (false)
 
 ##### `context`
 
@@ -485,7 +507,7 @@ Data type: `Puppet::LookupContext`
 
 
 
-### `vault_key`
+### <a name="vault_key"></a>`vault_key`
 
 Type: Ruby 4.x API
 
@@ -535,15 +557,24 @@ The path to the trusted certificate authority chain file.  Some OS defaults will
 
 ## Plans
 
-### `vault_secrets::approle_agent`
+### <a name="vault_secretsapprole_agent"></a>`vault_secrets::approle_agent`
 
 Plan configures a Vault agent for use with an existing AppRole
 
 #### Parameters
 
-The following parameters are available in the `vault_secrets::approle_agent` plan.
+The following parameters are available in the `vault_secrets::approle_agent` plan:
 
-##### `action`
+* [`action`](#action)
+* [`application`](#application)
+* [`vault_addr`](#vault_addr)
+* [`role_id`](#role_id)
+* [`secret_id`](#secret_id)
+* [`owner`](#owner)
+* [`install_vault`](#install_vault)
+* [`targets`](#targets)
+
+##### <a name="action"></a>`action`
 
 Data type: `Enum['install', 'remove']`
 
@@ -551,37 +582,37 @@ Install or remove the specified Vault agent service
 
 Default value: `'install'`
 
-##### `application`
+##### <a name="application"></a>`application`
 
 Data type: `String`
 
 Used as a component resource names. The Vault agent sink is: "/run/vault-${owner}/${application}.token"
 
-##### `vault_addr`
+##### <a name="vault_addr"></a>`vault_addr`
 
 Data type: `String`
 
 The URL of the Vault service.
 
-##### `role_id`
+##### <a name="role_id"></a>`role_id`
 
 Data type: `Sensitive`
 
 String - The RoleID of the Vault AppRole.
 
-##### `secret_id`
+##### <a name="secret_id"></a>`secret_id`
 
 Data type: `Sensitive`
 
 String - The SecretID of the Vault AppRole.
 
-##### `owner`
+##### <a name="owner"></a>`owner`
 
 Data type: `String`
 
 The user name that will own the Vault agent sink file.
 
-##### `install_vault`
+##### <a name="install_vault"></a>`install_vault`
 
 Data type: `Boolean`
 
@@ -590,7 +621,7 @@ parameters for "hashi_stack::repo" in hiera to customize the installation.
 
 Default value: ``true``
 
-##### `targets`
+##### <a name="targets"></a>`targets`
 
 Data type: `TargetSpec`
 

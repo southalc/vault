@@ -2,7 +2,7 @@
 
 # Custom hiera back-end for Hashicorp Vault key/value secrets engines v1 and v2
 Puppet::Functions.create_function(:vault_hiera_hash) do
-  # @param options uri, ca_trust, token_file, auth_path, version, timeout, context
+  # @param options uri, ca_trust, token_file, auth_path, version, timeout, fail_hard
   # @option options [String] :uri        Required. The complete URL to the API endpoint for Hashicorp Vault key/value secrets.
   # @option options [String] :ca_trust   Optional path to a trusted CA certificate chain file.  Will try system defaults for RedHat/Debian if not set.
   # @option options [String] :token_file The path to a file that contains a Vault token. When not defined it will try PKI auth with Puppet cert.
@@ -10,7 +10,6 @@ Puppet::Functions.create_function(:vault_hiera_hash) do
   # @option options [String] :version    The Vault key/value secrets engine will always use 'v1' unless set to 'v2' here.
   # @option options [Integer] :timeout   Optional value for tuning HTTP timeouts. Default is 5 seconds.
   # @option options [Boolean] :fail_hard Optional Raise an exception on errors when true, or return an empty hash when false. (false)
-  # @param context
   # @return [Hash] All key/value pairs from the given Vault path will be returned to hiera
   dispatch :vault_hiera_hash do
     param 'Hash', :options

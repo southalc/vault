@@ -77,11 +77,11 @@ class VaultSession
     # @param response An instance of Net::HTTPResponse
     # @return nil
     if response.is_a?(Net::HTTPNotFound)
-      err_message = "#{response.code} - URL path not found: #{@uri_path}}"
+      err_message = "Vault path not found. (#{response.code} from #{@uri})"
       raise Puppet::Error, append_api_errors(err_message, response) if fail_hard
       Puppet.debug append_api_errors(err_message, response)
     elsif !response.is_a?(Net::HTTPOK)
-      err_message = "#{response.code} - HTTP request failed to #{@uri_path}"
+      err_message = "Vault request failed. (#{response.code}) from #{@uri})"
       raise Puppet::Error, append_api_errors(err_message, response) if fail_hard
       Puppet.debug append_api_errors(err_message, response)
     end
