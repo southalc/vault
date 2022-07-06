@@ -16,6 +16,7 @@ class VaultSession
     # @option args [String] :ca_file Optional path to a file containing the trusted certificate authority chain.
     # @option args [String] :token Optional token used to access the Vault API, otherwise attempts certificate authentication using the Puppet agent certificate.
     # @option args [String] :auth_path The Vault path of the "cert" authentication type for Puppet certificates
+    # @option args [String] :auth_name The optional Vault certificate named role to authenticate against
     # @option args [Boolean] :fail_hard Optional Raise an exception on errors when true, or return an empty hash when false. (true)
     # @option args [String] :version The version of the Vault key/value secrets engine, either 'v1' or 'v2'. (v1)
     raise Puppet::Error, "The #{self.class.name} class requires a 'uri'." unless args.key?('uri')
@@ -62,7 +63,7 @@ class VaultSession
               args['token']
             else
               raise Puppet::Error, "An 'auth_path' must be defined when not using a token." unless args.key?('auth_path')
-              get_token(args['auth_path'])
+              get_token(args['auth_path'], args['auth_name'])
             end
     @headers = {
       'Content-Type': 'application/json',
@@ -160,9 +161,10 @@ class VaultSession
     response
   end
 
-  def get_token(auth_path)
+  def get_token(auth_path, auth_name)
     # @summary Use the Puppet host certificate and private key to authenticate to Vault
     # @param [String] :auth_path The Vault path of the "cert" authentication type for Puppet
+    # @param [String] :auth_name The optional Vault named certificate role to authenticate against
     # @return [String] A Vault token.
 
     # Get the client certificate and private key files for Vault authenticaion
@@ -171,8 +173,10 @@ class VaultSession
     http.cert = OpenSSL::X509::Certificate.new(File.read(hostcert))
     http.key = OpenSSL::PKey::RSA.new(File.read(hostprivkey))
 
+    data = auth_name ? {:name => auth_name} : nil
+
     # Submit the request to the auth_path login endpoint
-    response = post("/v1/auth/#{auth_path.gsub(%r{/$}, '')}/login")
+    response = post("/v1/auth/#{auth_path.gsub(%r{/$}, '')}/login", data)
     err_check(response)
 
     # Extract the token value from the response

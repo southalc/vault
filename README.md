@@ -323,6 +323,8 @@ include vault_secrets::vault_cert
 vault_cert { 'test':
   ensure            => present,
   vault_uri         => 'https://vault.example.com:8200/v1/pki/issue/role',
+  auth_path         => 'puppet-pki', # mount point for the pki auth engine
+  auth_name         => 'puppetCA',   # optionally limit to this auth role name
   cert_data         => {
     'common_name' => 'test.example.com',
     'alt_names'   => ['alias.exmaple.com', 'localhost'].join(','),

@@ -110,6 +110,7 @@ Puppet::Type.type(:vault_cert).provide(:vault_cert) do
     connection = {
       'uri'       => @resource[:vault_uri],
       'auth_path' => @resource[:auth_path],
+      'auth_name' => @resource[:auth_name],
       'ca_trust'  => ca_trust,
       'timeout'   => @resource[:timeout],
     }
