@@ -17,6 +17,14 @@ Puppet::Type.newtype(:vault_cert) do
     defaultto 'puppet-pki'
   end
 
+  newparam(:auth_name) do
+    desc 'The named certificate role used to authenticate puppet agent to vault'
+    # defaults to unset, which means vault will try to match the client
+    # against all defined certificate roles. It may be necessary to set this
+    # if a client would match multiple roles to ensure the correct one is used
+    #defaultto nil
+  end
+
   newparam(:timeout) do
     desc 'Length of time to wait on vault connections'
     defaultto 5
