@@ -17,6 +17,7 @@ resulting token to a sink file at "/run/vault-${owner}/${title}.token"
 ### Resource types
 
 * [`vault_cert`](#vault_cert): A type representing a certificate issued by Hashicorp Vault
+* [`vault_ssh_cert`](#vault_ssh_cert): A type representing an SSH certificate issued by Hashicorp Vault
 
 ### Functions
 
@@ -346,12 +347,17 @@ Default value: `root`
 
 The following parameters are available in the `vault_cert` type.
 
+* [`auth_name`](#auth_name)
 * [`auth_path`](#auth_path)
 * [`name`](#name)
 * [`provider`](#provider)
 * [`renewal_threshold`](#renewal_threshold)
 * [`timeout`](#timeout)
 * [`vault_uri`](#vault_uri)
+
+##### <a name="auth_name"></a>`auth_name`
+
+The named certificate role used to authenticate puppet agent to vault
 
 ##### <a name="auth_path"></a>`auth_path`
 
@@ -381,6 +387,119 @@ Default value: `3`
 Length of time to wait on vault connections
 
 Default value: `5`
+
+##### <a name="vault_uri"></a>`vault_uri`
+
+The full URI of the vault PKI secrets engine
+
+### <a name="vault_ssh_cert"></a>`vault_ssh_cert`
+
+A type representing an SSH certificate issued by Hashicorp Vault
+
+#### Properties
+
+The following properties are available in the `vault_ssh_cert` type.
+
+##### `ensure`
+
+Valid values: `present`, `absent`
+
+The basic property that the resource should be in.
+
+Default value: `present`
+
+##### `expiration`
+
+Valid values: `auto`
+
+Read-only property showing the expiration time of the certificate
+
+Default value: `auto`
+
+##### `file`
+
+Path the signed certificate should be written
+
+##### `group`
+
+The group which the certificate file should be owned by
+
+Default value: `root`
+
+##### `mode`
+
+The file mode the certificate file should be written with
+
+Default value: `0640`
+
+##### `owner`
+
+The user which the certificate file should be owned by
+
+Default value: `root`
+
+##### `valid_principals`
+
+Users or hostnames which the issued certificate should be valid for
+
+Default value: `[]`
+
+#### Parameters
+
+The following parameters are available in the `vault_ssh_cert` type.
+
+* [`auth_name`](#auth_name)
+* [`auth_path`](#auth_path)
+* [`cert_type`](#cert_type)
+* [`name`](#name)
+* [`provider`](#provider)
+* [`renewal_threshold`](#renewal_threshold)
+* [`timeout`](#timeout)
+* [`ttl`](#ttl)
+* [`vault_uri`](#vault_uri)
+
+##### <a name="auth_name"></a>`auth_name`
+
+The named certificate role used to authenticate puppet agent to vault
+
+##### <a name="auth_path"></a>`auth_path`
+
+The path used to authenticate puppet agent to vault
+
+Default value: `puppet-pki`
+
+##### <a name="cert_type"></a>`cert_type`
+
+Cert type to issue ("user" or "host")
+
+Default value: `host`
+
+##### <a name="name"></a>`name`
+
+namevar
+
+Path to the public key the certificate should be issued for
+
+##### <a name="provider"></a>`provider`
+
+The specific backend to use for this `vault_ssh_cert` resource. You will seldom need to specify this --- Puppet will
+usually discover the appropriate provider for your platform.
+
+##### <a name="renewal_threshold"></a>`renewal_threshold`
+
+Certificate should be renewed when fewer than this many days remain before expiry
+
+Default value: `3`
+
+##### <a name="timeout"></a>`timeout`
+
+Length of time to wait on vault connections
+
+Default value: `5`
+
+##### <a name="ttl"></a>`ttl`
+
+Lifetime to request any newly issued certificates should be valid for
 
 ##### <a name="vault_uri"></a>`vault_uri`
 

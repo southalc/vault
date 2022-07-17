@@ -6,7 +6,7 @@ describe Puppet::Type.type(:vault_cert) do
   end
 
   describe 'when validating attributes' do
-    params = [:name, :vault_uri, :auth_path, :timeout, :renewal_threshold]
+    params = [:name, :vault_uri, :auth_path, :auth_name, :timeout, :renewal_threshold]
     properties = [
       :cert_data,
       :info_owner, :info_group, :info_mode,

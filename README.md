@@ -152,6 +152,10 @@ path "puppet/common" {
 path "pki/issue/example-local" {
   capabilities = ["update"]
 }
+
+path "ssh-host/sign/puppet" {
+  capabilities = ["create", "update"]
+}
 ```
 Write the policy to Vault on the 'puppet-pki' authentication path:
 ```
@@ -356,6 +360,38 @@ class { 'vault_secrets::vault_cert':
 
 `vault_cert` resources will autorequire any `File` resources coresponding to
 the parent directories of the `ca_chain_file`, `cert_file` and `key_file` properties. Any `User` or `Group` resources corresponding to the `*_owner` or `*_group` properties will also be autorequired.
+
+### Issue SSH certificates from Vault
+
+The `vault_ssh_cert` type can be used to deploy signed SSH certificates issued by
+the SSH Secrets Engine in Vault. This type will authenticate to Vault during catalog
+apply using the host's puppet certificate and then attempt to sign an existing
+public key from disk if a corresponding certificate does not exist or is past
+the expiration threshold. Certificates will be automatically renewed when past the
+`renewal_threshold` number of days before expiration.
+
+```puppet
+vault_ssh_cert {
+  '/etc/ssh/ssh_host_rsa_key.pub':
+    ensure           => present,
+    vault_uri        => "${vault_address}/v1/ssh-host/sign/puppet",
+    auth_path        => 'puppet-pki',
+    valid_principals => [$trusted['certname']];
+}
+```
+
+You can setup vault to allow this using something like the following, in addition
+to the general setup instructions above.
+
+```bash
+vault secrets enable -path ssh-host ssh
+vault write ssh-host/config/ca generate_signing_key=true
+vault write ssh-host/roles/puppet key_type=ca allowed_domains=example.com allow_subdomains=true
+```
+
+Note, this will allow puppet nodes to issue certificates valid for any hostname, and
+this may not be secure enough for production use. You may wish to tweak the ssh secret
+engine role to further lock down what certificates may be issued to each node.
 
 ## Limitations
 
