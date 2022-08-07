@@ -1,0 +1,13 @@
+<%- | String $name,
+      String $sink_file
+| -%>
+# FILE MANAGED BY PUPPET
+[Unit]
+Description=Monitor Vault token file
+Wants=network.target network-online.target
+After=network.target network-online.target
+
+[Path]
+PathChanged=<%= $sink_file %>
+Unit=<%= $name %>-vault-token.service
+

@@ -1,0 +1,7 @@
+<%- | String $owner | -%>
+# FILE MANAGED BY PUPPET
+# Create directories used by the Vault agent
+#Type Path          Mode  UID   GID       Age Argument
+d!    /run/vault    0700  root  root      -
+d!    /run/vault-<%= $owner %> 0700 <%= $owner %>  root  -
+

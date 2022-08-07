@@ -1,0 +1,8 @@
+<%- | String $owner,
+      String $sink_file
+| -%>
+# FILE MANAGED BY PUPPET
+[Service]
+Type=oneshot
+ExecStart=/bin/chown <%= $owner %> <%= $sink_file %>
+

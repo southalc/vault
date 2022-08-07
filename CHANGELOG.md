@@ -1,5 +1,9 @@
 # Changelog
 
+## Release 0.5.0
+
+- New 'vault_ssh_cert' custom type to manage signed SSH host keys with Vault.  Contributed by optiz0r.
+
 ## Release 0.4.5
 
 - Make fail_hard configurable from vault_hiera_hash #11.  Contributed by gibbs

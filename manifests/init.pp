@@ -45,20 +45,20 @@ class vault_secrets (
     # Create certificate and key files from the 'host_cert' hash data
     file {
       default:
-        ensure => present,
+        ensure => file,
         owner  => 'root',
         group  => 'root',
-      ;
+        ;
       $cert:
         mode      => '0644',
         content   => $host_cert['certificate'],
         show_diff => false,
-      ;
+        ;
       $key:
         mode      => '0600',
         content   => $host_cert['private_key'],
         show_diff => false,
-      ;
+        ;
       $ca_chain:
         mode    => '0644',
         content => join($host_cert['ca_chain'], "\n"),
@@ -69,16 +69,16 @@ class vault_secrets (
     # catalog as file resources so they can always be referenced by other resources.
     file {
       default:
-        ensure => present,
+        ensure => file,
         owner  => 'root',
         group  => 'root',
-      ;
+        ;
       $cert:
         mode    => '0644',
-      ;
+        ;
       $key:
         mode    => '0600',
-      ;
+        ;
       $ca_chain:
         mode    => '0644',
     }
@@ -90,4 +90,3 @@ class vault_secrets (
     refreshonly => true,
   }
 }
-

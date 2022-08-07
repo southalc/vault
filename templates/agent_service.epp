@@ -1,0 +1,19 @@
+<%- | String $name | -%>
+# FILE MANAGED BY PUPPET
+[Unit]
+Description=Vault agent - <%= $name %>
+Wants=<%= $name %>-vault-token.path
+
+[Service]
+PIDFile=/run/vault/vault-agent.pid
+ExecStart=/usr/bin/vault agent -config=/etc/vault/<%= $name %>_agent.json
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+KillSignal=SIGTERM
+Restart=on-failure
+RestartSec=42s
+LimitMEMLOCK=infinity
+
+[Install]
+WantedBy=multi-user.target
+

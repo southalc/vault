@@ -54,44 +54,38 @@ define vault_secrets::approle_agent (
     }
 
     file { default:
-        ensure => directory,
-        owner  => 'root',
-        group  => 'root',
-        mode   => '0700',
+      ensure => directory,
+      owner  => 'root',
+      group  => 'root',
+      mode   => '0700',
       ;
       '/etc/vault':
-      ;
+        ;
       '/run/vault':
-      ;
+        ;
       "/run/vault-${owner}":
         owner => $owner,
-      ;
+        ;
     }
 
     # systemd tmpfile entry ensures directories are created on boot
     systemd::tmpfile { "${title}_vault-agent.conf":
-      content => @("END"),
-                 # FILE MANAGED BY PUPPET
-                 # Create directories used by the Vault agent
-                 #Type Path          Mode  UID   GID       Age Argument
-                 d!    /run/vault    0700  root  root      -
-                 d!    /run/vault-${owner} 0700  ${owner}  root  -
-                 |END
+      content => epp('vault_secrets/tmpfiles.epp', { owner => $owner, }),
     }
 
     file { default:
-        ensure  => 'file',
-        owner   => 'root',
-        group   => 'root',
-        mode    => '0600',
-        require => File['/etc/vault'],
+      ensure  => 'file',
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0600',
+      require => File['/etc/vault'],
       ;
       $approle_id_file:
         content => Sensitive($role_id),
-      ;
+        ;
       $approle_secret_file:
         content => Sensitive($secret_id),
-      ;
+        ;
     }
 
     # Define the AppRole configuration for Vault agent
@@ -115,7 +109,7 @@ define vault_secrets::approle_agent (
             config => { path => $sink_file, },
           },
         ],
-      }
+      },
     }
 
     file { $agent_config_file:
@@ -132,50 +126,25 @@ define vault_secrets::approle_agent (
       enable  => true,
       active  => true,
       require => File['/run/vault'],
-      content => @("END"/$),
-                 # FILE MANAGED BY PUPPET
-                 [Unit]
-                 Description=Vault agent - ${title}
-                 Wants=${title}-vault-token.path
-                 
-                 [Service]
-                 PIDFile=/run/vault/vault-agent.pid
-                 ExecStart=/usr/bin/vault agent -config=/etc/vault/${title}_agent.json
-                 ExecReload=/bin/kill -HUP \$MAINPID
-                 KillMode=process
-                 KillSignal=SIGTERM
-                 Restart=on-failure
-                 RestartSec=42s
-                 LimitMEMLOCK=infinity
-                 
-                 [Install]
-                 WantedBy=multi-user.target
-                 |END
+      content => epp('vault_secrets/agent_service.epp', { name => $title, }),
     }
 
     systemd::unit_file { "${title}-vault-token.service":
-      content => @("END"),
-                 # FILE MANAGED BY PUPPET
-                 [Service]
-                 Type=oneshot
-                 ExecStart=/bin/chown ${owner} ${sink_file}
-                 |END
+      content => epp('vault_secrets/token_service.epp', {
+          owner     => $owner,
+          sink_file => $sink_file,
+        }
+      ),
     }
 
     systemd::unit_file { "${title}-vault-token.path":
       enable  => true,
       active  => true,
-      content => @("END"),
-                 # FILE MANAGED BY PUPPET
-                 [Unit]
-                 Description=Monitor Vault token file
-                 Wants=network.target network-online.target
-                 After=network.target network-online.target
-                 
-                 [Path]
-                 PathChanged=${sink_file}
-                 Unit=${title}-vault-token.service
-                 |END
+      content => epp('vault_secrets/token_path.epp', {
+          name      => $title,
+          sink_file => $sink_file,
+        }
+      ),
     }
     # END ensure => 'present'
   } else {
@@ -197,8 +166,7 @@ define vault_secrets::approle_agent (
         "${title}-vault-token.service",
         "${title}-vault-token.path",
       ]:
-      ensure => 'absent',
+        ensure => 'absent',
     }
   }
 }
-
