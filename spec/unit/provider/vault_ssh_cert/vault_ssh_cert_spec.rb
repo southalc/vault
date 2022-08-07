@@ -13,14 +13,14 @@ describe provider_class do
   describe 'when loading existing instances' do
     before :each do
       cert_files = [
-        "/etc/ssh/ssh_host_rsa_key-cert.pub",
-        "/etc/ssh/ssh_host_ecdsa_key-cert.pub",
+        '/etc/ssh/ssh_host_rsa_key-cert.pub',
+        '/etc/ssh/ssh_host_ecdsa_key-cert.pub',
       ]
 
-      allow(Dir).to receive(:glob).with("/etc/ssh/ssh_host_*_key-cert.pub").and_return(cert_files)
-      cert_files.each do |filename|
-        allow(provider_class).to receive(:load_file).with("/etc/ssh/ssh_host_rsa_key-cert.pub").and_return(['root', 'root', '0640'])
-        allow(provider_class).to receive(:load_file).with("/etc/ssh/ssh_host_ecdsa_key-cert.pub").and_return(['root', 'root', '0640'])
+      allow(Dir).to receive(:glob).with('/etc/ssh/ssh_host_*_key-cert.pub').and_return(cert_files)
+      cert_files.each do
+        allow(provider_class).to receive(:load_file).with('/etc/ssh/ssh_host_rsa_key-cert.pub').and_return(['root', 'root', '0640'])
+        allow(provider_class).to receive(:load_file).with('/etc/ssh/ssh_host_ecdsa_key-cert.pub').and_return(['root', 'root', '0640'])
       end
     end
 
@@ -28,7 +28,7 @@ describe provider_class do
       it 'returns an aray of SSH certificate instances' do
         allow(provider_class).to receive(:parse_cert_file).and_return(0, [])
         instances = provider_class.instances.map { |x| x.name }
-        expect(instances).to contain_exactly("/etc/ssh/ssh_host_rsa_key.pub", "/etc/ssh/ssh_host_ecdsa_key.pub")
+        expect(instances).to contain_exactly('/etc/ssh/ssh_host_rsa_key.pub', '/etc/ssh/ssh_host_ecdsa_key.pub')
       end
     end
 
@@ -84,7 +84,7 @@ describe provider_class do
         allow(provider_class).to receive(:ssh_keygen).with('-L', '-f', 'test-cert.pem').and_return(output)
         expect(provider_class.parse_cert_file('test-cert.pem')[1]).to eq([])
       end
-      
+
       it 'parses a single principal' do
         output = <<-EOF
           test-cert.pub:
@@ -102,7 +102,7 @@ describe provider_class do
         allow(provider_class).to receive(:ssh_keygen).with('-L', '-f', 'test-cert.pem').and_return(output)
         expect(provider_class.parse_cert_file('test-cert.pem')[1]).to eq(['test.example.com'])
       end
-      
+
       it 'parses multiple principals' do
         output = <<-EOF
           test-cert.pub:
@@ -342,7 +342,7 @@ describe provider_class do
         expect(VaultSession).to receive(:new).and_return(vault_conn)
         expect(instance).to receive(:URI).and_return(uri)
         expect(File).to receive(:read).with('/testfile').and_return('testkey')
-        expect(vault_conn).to receive(:post).with('/ssh/sign/cert', { :cert_type => 'host', :public_key => 'testkey' }).and_return('response')
+        expect(vault_conn).to receive(:post).with('/ssh/sign/cert', { cert_type: 'host', public_key: 'testkey' }).and_return('response')
         expect(vault_conn).to receive(:parse_response).with('response').and_return('secrets')
         expect(instance.issue_cert).to eq 'secrets'
       end
@@ -355,7 +355,7 @@ describe provider_class do
       provider_class.new(resource)
     end
 
-    describe "when updating file" do
+    describe 'when updating file' do
       it 'does nothing when all attributes are in sync' do
         expect(provider_class).not_to receive(:chown_file)
         expect(provider_class).not_to receive(:chmod_file)
@@ -422,9 +422,9 @@ describe provider_class do
   end
 
   describe 'flush_file' do
-    describe "when updating file" do
+    describe 'when updating file' do
       let(:target) { '/testfile' }
-      let(:resource) { type_class.new({ :name => 'test', :file => '/testfile', :owner => 'testuser', :group => 'testgroup', :mode => '0600', :provider => provider_class.name }) }
+      let(:resource) { type_class.new({ name: 'test', file: '/testfile', owner: 'testuser', group: 'testgroup', mode: '0600', provider: provider_class.name }) }
       let(:instance) { provider_class.new(resource) }
 
       it 'forces reset file attributes if the file path is being changed' do

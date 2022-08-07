@@ -82,6 +82,7 @@ describe Puppet::Type.type(:vault_ssh_cert) do
   describe 'when validating valid_principals' do
     let(:provider_class) { described_class.provide(:fake) { mk_resource_methods } }
     let(:provider) { provider_class.new }
+
     it 'fails validation when not all entries are Strings' do
       expect {
         described_class.new(name: 'test', vault_uri: '', valid_principals: [1], provider: provider)

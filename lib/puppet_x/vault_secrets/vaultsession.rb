@@ -173,7 +173,7 @@ class VaultSession
     http.cert = OpenSSL::X509::Certificate.new(File.read(hostcert))
     http.key = OpenSSL::PKey::RSA.new(File.read(hostprivkey))
 
-    data = auth_name ? {:name => auth_name} : nil
+    data = auth_name ? { name: auth_name } : nil
 
     # Submit the request to the auth_path login endpoint
     response = post("/v1/auth/#{auth_path.gsub(%r{/$}, '')}/login", data)

@@ -22,7 +22,7 @@ Puppet::Type.newtype(:vault_ssh_cert) do
     # defaults to unset, which means vault will try to match the client
     # against all defined certificate roles. It may be necessary to set this
     # if a client would match multiple roles to ensure the correct one is used
-    #defaultto nil
+    # defaultto nil
   end
 
   newparam(:timeout) do
@@ -43,18 +43,18 @@ Puppet::Type.newtype(:vault_ssh_cert) do
     desc 'Cert type to issue ("user" or "host")'
     defaultto 'host'
     validate do |value|
-      unless value == "user" or value == "host"
-        raise ArgumentError, "%s is not a valid cert_type" % value
+      unless ['user', 'host'].include? value
+        raise ArgumentError, "#{value} is not a valid cert_type"
       end
     end
   end
 
-  newproperty(:valid_principals, :array_matching => :all) do
+  newproperty(:valid_principals, array_matching: :all) do
     desc 'Users or hostnames which the issued certificate should be valid for'
     defaultto []
     validate do |value|
       unless value.is_a?(String)
-        raise ArgumentError, "All valid_principals values must be Strings"
+        raise ArgumentError, 'All valid_principals values must be Strings.'
       end
     end
   end
@@ -62,7 +62,7 @@ Puppet::Type.newtype(:vault_ssh_cert) do
   newproperty(:file) do
     desc 'Path the signed certificate should be written'
     defaultto do
-      @resource[:name].sub(/(\.pub)?$/, '-cert\1')
+      @resource[:name].sub(%r{(\.pub)?$}, '-cert\1')
     end
   end
 

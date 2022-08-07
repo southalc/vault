@@ -9,7 +9,7 @@ Puppet::Type.type(:vault_ssh_cert).provide(:vault_ssh_cert) do
 
   mk_resource_methods
 
-  commands :ssh_keygen => "ssh-keygen"
+  commands ssh_keygen: 'ssh-keygen'
 
   def initialize(value = {})
     super(value)
@@ -19,18 +19,18 @@ Puppet::Type.type(:vault_ssh_cert).provide(:vault_ssh_cert) do
   def self.instances
     # @summary Enables resource discovery for the vault_ssh_cert custom type.
     instances = []
-    cert_filenames = Dir.glob("/etc/ssh/ssh_host_*_key-cert.pub")
+    cert_filenames = Dir.glob('/etc/ssh/ssh_host_*_key-cert.pub')
     cert_filenames.each do |cert_file|
       owner, group, mode = load_file(cert_file)
 
       begin
-        expiration, valid_principals = self.parse_cert_file cert_file
-      rescue => error
+        expiration, valid_principals = parse_cert_file cert_file
+      rescue
         expiration = nil
         valid_principals = []
       end
 
-      public_key_file = cert_file.sub(/(.*)-cert(\.pub?)$/, '\1\2')
+      public_key_file = cert_file.sub(%r{(.*)-cert(\.pub?)$}, '\1\2')
 
       instances << new(
         ensure: :present,
@@ -57,9 +57,9 @@ Puppet::Type.type(:vault_ssh_cert).provide(:vault_ssh_cert) do
   def self.parse_cert_file(file)
     expiration = nil
     valid_principals = []
-    output = ssh_keygen("-L", "-f", file).chomp
+    output = ssh_keygen('-L', '-f', file).chomp
     output.each_line do |line|
-      next unless matches = /\s+Valid:\s+from .* to (.*)/.match(line)
+      next unless (matches = %r{\s+Valid:\s+from .* to (.*)}.match(line))
       expiration = Time.parse(matches[1]).to_i
       break
     end
@@ -67,15 +67,11 @@ Puppet::Type.type(:vault_ssh_cert).provide(:vault_ssh_cert) do
     in_principals_section = false
     output.each_line do |line|
       if in_principals_section
-        # Check if starting another section
-        if /^\s+(.*):/.match(line)
-          in_principals_section = false
-          next
-        end
+        # Break if starting another section
+        break if line.match?(%r{^\s+(.*):})
         valid_principals << line.strip
       else
-        in_principals_section = true if matches = /^\s+Principals:\s*$/.match(line)
-        next
+        in_principals_section = line.match?(%r{^\s+Principals:\s*$})
       end
     end
 
@@ -117,11 +113,11 @@ Puppet::Type.type(:vault_ssh_cert).provide(:vault_ssh_cert) do
       'timeout'   => @resource[:timeout],
     }
     request_data = {
-      :cert_type        => @resource[:cert_type],
-      :public_key       => File.read(@resource[:name]),
-      :ttl              => @resource[:ttl],
-      :valid_principals => !@resource[:valid_principals].empty? ? @resource[:valid_principals].join(',') : nil,
-    }.select {|k, v| !v.nil? }
+      cert_type:        @resource[:cert_type],
+      public_key:       File.read(@resource[:name]),
+      ttl:              @resource[:ttl],
+      valid_principals: !@resource[:valid_principals].empty? ? @resource[:valid_principals].join(',') : nil,
+    }.reject { |_k, v| v.nil? }
     # Use the Vault class for the lookup
     vault = VaultSession.new(connection)
     begin
@@ -171,7 +167,7 @@ Puppet::Type.type(:vault_ssh_cert).provide(:vault_ssh_cert) do
   def needs_issue?
     return true if @property_hash[:ensure] != :present
     return true if expires_soon_or_expired
-    return true if @property_flush.include?(:valid_principals) and @property_hash[:valid_principals] != @property_flush[:valid_principals]
+    return true if @property_flush.include?(:valid_principals) && @property_hash[:valid_principals] != @property_flush[:valid_principals]
     false
   end
 
@@ -236,7 +232,7 @@ Puppet::Type.type(:vault_ssh_cert).provide(:vault_ssh_cert) do
 
     if needs_issue?
       response = issue_cert
-      flush_file(response["signed_key"])
+      flush_file(response['signed_key'])
     else
       flush_attributes
     end

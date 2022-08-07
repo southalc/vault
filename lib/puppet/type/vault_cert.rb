@@ -22,7 +22,7 @@ Puppet::Type.newtype(:vault_cert) do
     # defaults to unset, which means vault will try to match the client
     # against all defined certificate roles. It may be necessary to set this
     # if a client would match multiple roles to ensure the correct one is used
-    #defaultto nil
+    # defaultto nil
   end
 
   newparam(:timeout) do
