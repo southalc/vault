@@ -1,5 +1,9 @@
 # Changelog
 
+## Release 0.5.1
+
+Bugfix - Data type correction.  Contributed by luckyraul
+
 ## Release 0.5.0
 
 - New 'vault_ssh_cert' custom type to manage signed SSH host keys with Vault.  Contributed by optiz0r.
