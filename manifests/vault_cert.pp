@@ -3,7 +3,7 @@
 # @param purge Clean up certificate files no longer managed by puppet.
 #
 class vault_secrets::vault_cert (
-  Bool $purge = false,
+  Boolean $purge = false,
 ) {
   file {
     $facts['vault_cert_dir']:
