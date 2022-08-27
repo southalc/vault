@@ -1,5 +1,9 @@
 # Changelog
 
+## Release 0.5.2
+
+Bugfix - Enable the vault-token service service in the approle_agent
+
 ## Release 0.5.1
 
 Bugfix - Data type correction.  Contributed by luckyraul

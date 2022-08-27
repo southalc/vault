@@ -130,6 +130,8 @@ define vault_secrets::approle_agent (
     }
 
     systemd::unit_file { "${title}-vault-token.service":
+      enable  => true,
+      active  => true,
       content => epp('vault_secrets/token_service.epp', {
           owner     => $owner,
           sink_file => $sink_file,
