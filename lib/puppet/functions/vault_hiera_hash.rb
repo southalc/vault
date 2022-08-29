@@ -42,8 +42,9 @@ Puppet::Functions.create_function(:vault_hiera_hash) do
     # Use the Vault class for the lookup
     data = VaultSession.new(connection).get
 
-    context.not_found if data.empty? || !data.is_a?(Hash)
-    unless context.not_found
+    not_found = data.empty? || !data.is_a?(Hash)
+    context.not_found if not_found
+    unless not_found
       data.each do |key, value|
         begin
           data[key] = JSON.parse(value)
