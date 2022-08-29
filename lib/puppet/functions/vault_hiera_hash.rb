@@ -17,6 +17,7 @@ Puppet::Functions.create_function(:vault_hiera_hash) do
   end
 
   require "#{File.dirname(__FILE__)}/../../puppet_x/vault_secrets/vaultsession.rb"
+  require "json"
 
   def vault_hiera_hash(options, context)
     err_message = "The vault_hiera_hash function requires one of 'uri' or 'uris'"
@@ -42,6 +43,14 @@ Puppet::Functions.create_function(:vault_hiera_hash) do
     data = VaultSession.new(connection).get
 
     context.not_found if data.empty? || !data.is_a?(Hash)
+    unless context.not_found
+      data.each do |key, value|
+        begin
+          data[key] = JSON.parse(value)
+        rescue JSON::ParserError
+        end
+      end
+    end
     context.cache_all(data)
     data
   end
