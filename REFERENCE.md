@@ -98,7 +98,7 @@ The following parameters are available in the `vault_secrets::vault_cert` class:
 
 ##### <a name="purge"></a>`purge`
 
-Data type: `Any`
+Data type: `Boolean`
 
 Clean up certificate files no longer managed by puppet.
 
@@ -191,36 +191,6 @@ A type representing a certificate issued by Hashicorp Vault
 
 The following properties are available in the `vault_cert` type.
 
-##### `ca_chain`
-
-Valid values: `auto`
-
-Read-only property which contains the value of the CA chain
-
-Default value: `auto`
-
-##### `ca_chain_file`
-
-Where the CA chain file should be written
-
-##### `ca_chain_group`
-
-The group which the ca_chain_file should be owned by
-
-Default value: `root`
-
-##### `ca_chain_mode`
-
-The file mode the ca_chain_file should be written with
-
-Default value: `0644`
-
-##### `ca_chain_owner`
-
-The user which the ca_chain_file should be owned by
-
-Default value: `root`
-
 ##### `cert`
 
 Valid values: `auto`
@@ -228,6 +198,36 @@ Valid values: `auto`
 Read-only property which contains the value of the certificate
 
 Default value: `auto`
+
+##### `cert_chain`
+
+Valid values: `auto`
+
+Read-only property which contains the value of the CA chain
+
+Default value: `auto`
+
+##### `cert_chain_file`
+
+Where the CA chain file should be written
+
+##### `cert_chain_group`
+
+The group which the cert_chain_file should be owned by
+
+Default value: `root`
+
+##### `cert_chain_mode`
+
+The file mode the cert_chain_file should be written with
+
+Default value: `0644`
+
+##### `cert_chain_owner`
+
+The user which the cert_chain_file should be owned by
+
+Default value: `root`
 
 ##### `cert_data`
 
@@ -271,19 +271,19 @@ Read-only property showing the expiration time of the certificate
 
 Default value: `auto`
 
-##### `info_ca_chain`
-
-Valid values: `auto`
-
-Read-only property which contains the value of the CA chain from the info file
-
-Default value: `auto`
-
 ##### `info_cert`
 
 Valid values: `auto`
 
 Read-only property which contains the value of the cerificate from the info file
+
+Default value: `auto`
+
+##### `info_cert_chain`
+
+Valid values: `auto`
+
+Read-only property which contains the value of the CA chain from the info file
 
 Default value: `auto`
 
@@ -349,6 +349,7 @@ The following parameters are available in the `vault_cert` type.
 
 * [`auth_name`](#auth_name)
 * [`auth_path`](#auth_path)
+* [`ca_trust`](#ca_trust)
 * [`name`](#name)
 * [`provider`](#provider)
 * [`renewal_threshold`](#renewal_threshold)
@@ -364,6 +365,10 @@ The named certificate role used to authenticate puppet agent to vault
 The path used to authenticate puppet agent to vault
 
 Default value: `puppet-pki`
+
+##### <a name="ca_trust"></a>`ca_trust`
+
+Optional path to the file containing trusted certificate authorities
 
 ##### <a name="name"></a>`name`
 

@@ -25,6 +25,14 @@ Puppet::Type.newtype(:vault_ssh_cert) do
     # defaultto nil
   end
 
+  newparam(:ca_trust) do
+    desc 'Optional path to the file containing trusted certificate authorities'
+    # defaults to unset, which means the client will attempt to use the default
+    # system trust on RedHat or Debian based distributions. Any other operating
+    # systems will need supply a value.
+    # defaultto nil
+  end
+
   newparam(:timeout) do
     desc 'Length of time to wait on vault connections'
     defaultto 5

@@ -25,9 +25,9 @@ Puppet::Type.type(:vault_cert).provide(:vault_cert) do
       info_content, info_owner, info_group, info_mode = load_file(info_file)
       cert_info = JSON.parse(info_content)
 
-      next unless ['data', 'cert_data', 'ca_chain_file', 'cert_file', 'key_file'].all? { |k| cert_info.key? k }
+      next unless ['data', 'cert_data', 'cert_chain_file', 'cert_file', 'key_file'].all? { |k| cert_info.key? k }
 
-      ca_chain, ca_chain_owner, ca_chain_group, ca_chain_mode = load_file(cert_info['ca_chain_file'])
+      cert_chain, cert_chain_owner, cert_chain_group, cert_chain_mode = load_file(cert_info['cert_chain_file'])
       cert, cert_owner, cert_group, cert_mode = load_file(cert_info['cert_file'])
       key, key_owner, key_group, key_mode = load_file(cert_info['key_file'])
 
@@ -47,19 +47,19 @@ Puppet::Type.type(:vault_cert).provide(:vault_cert) do
         info_group: info_group,
         info_mode: info_mode,
         # CA Chain
-        ca_chain_file: cert_info['ca_chain_file'],
-        ca_chain_owner: ca_chain_owner,
-        ca_chain_group: ca_chain_group,
-        ca_chain_mode: ca_chain_mode,
-        ca_chain: ca_chain,
-        info_ca_chain: cert_info['data']['ca_chain'].join("\n"),
+        cert_chain_file: cert_info['cert_chain_file'],
+        cert_chain_owner: cert_chain_owner,
+        cert_chain_group: cert_chain_group,
+        cert_chain_mode: cert_chain_mode,
+        cert_chain: cert_chain,
+        info_cert_chain: [cert_info['data']['certificate'], cert_info['data']['ca_chain'].join('')].join(''),
         # Certificate
         cert_file: cert_info['cert_file'],
         cert_owner: cert_owner,
         cert_group: cert_group,
         cert_mode: cert_mode,
         cert: cert,
-        info_cert: [cert_info['data']['certificate'], cert_info['data']['issuing_ca']].join("\n"),
+        info_cert: cert_info['data']['certificate'],
         # Private Key
         key_file: cert_info['key_file'],
         key_owner: key_owner,
@@ -92,26 +92,14 @@ Puppet::Type.type(:vault_cert).provide(:vault_cert) do
     @property_flush[:ensure] = :absent
   end
 
-  def self.get_ca_trust
-    # Try known paths for trusted CA certificate bundles
-    if File.exist?('/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem')
-      '/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem'
-    elsif File.exist?('/etc/ssl/certs/ca-certificates.crt')
-      '/etc/ssl/certs/ca-certificates.crt'
-    else
-      raise Puppet::Error, 'Failed to get the trusted CA certificate file'
-    end
-  end
-
   def issue_cert
     # @summary Request a certificate from the Vault API.
     Puppet.info("Requesting certificate #{@resource[:name]}")
-    ca_trust = self.class.get_ca_trust
     connection = {
       'uri'       => @resource[:vault_uri],
       'auth_path' => @resource[:auth_path],
       'auth_name' => @resource[:auth_name],
-      'ca_trust'  => ca_trust,
+      'ca_trust'  => @resource[:ca_trust],
       'timeout'   => @resource[:timeout],
     }
     # Use the Vault class for the lookup
@@ -179,20 +167,20 @@ Puppet::Type.type(:vault_cert).provide(:vault_cert) do
     @property_flush[:cert_data] = value
   end
 
-  def ca_chain_file=(value)
-    @property_flush[:ca_chain_file] = value
+  def cert_chain_file=(value)
+    @property_flush[:cert_chain_file] = value
   end
 
-  def ca_chain_owner=(value)
-    @property_flush[:ca_chain_owner] = value
+  def cert_chain_owner=(value)
+    @property_flush[:cert_chain_owner] = value
   end
 
-  def ca_chain_group=(value)
-    @property_flush[:ca_chain_group] = value
+  def cert_chain_group=(value)
+    @property_flush[:cert_chain_group] = value
   end
 
-  def ca_chain_mode=(value)
-    @property_flush[:ca_chain_mode] = value
+  def cert_chain_mode=(value)
+    @property_flush[:cert_chain_mode] = value
   end
 
   def cert_file=(value)
@@ -231,7 +219,7 @@ Puppet::Type.type(:vault_cert).provide(:vault_cert) do
     # Property should be read only, do not change
   end
 
-  def ca_chain=(value); end
+  def cert_chain=(value); end
 
   def cert=(value); end
 
@@ -289,7 +277,7 @@ Puppet::Type.type(:vault_cert).provide(:vault_cert) do
     info_file = "#{@cert_dir}/#{@resource[:name]}.json"
 
     if @property_flush[:ensure] == :absent
-      self.class.delete_if_exists(@resource[:ca_chain_file])
+      self.class.delete_if_exists(@resource[:cert_chain_file])
       self.class.delete_if_exists(@resource[:cert_file])
       self.class.delete_if_exists(@resource[:key_file])
       self.class.delete_if_exists(info_file)
@@ -302,10 +290,15 @@ Puppet::Type.type(:vault_cert).provide(:vault_cert) do
     if needs_issue?
       response = issue_cert
 
+      # Add trailing newlines to file content values
+      response['ca_chain'] = response['ca_chain'].map { |data| "#{data}\n" }
+      response['certificate'] = "#{response['certificate']}\n"
+      response['private_key'] = "#{response['private_key']}\n"
+
       info = JSON.generate({
                              data: response,
         cert_data: @resource[:cert_data],
-        ca_chain_file: @resource[:ca_chain_file],
+        cert_chain_file: @resource[:cert_chain_file],
         cert_file: @resource[:cert_file],
         key_file: @resource[:key_file],
                            })
@@ -316,23 +309,21 @@ Puppet::Type.type(:vault_cert).provide(:vault_cert) do
       # These are read-only properties which will never
       # be set in the puppet resource, but we will set once
       # a cert has been issued.
-      # These will be flushed to disk later if the is (@property_hash)
-      # does not match the should (@resource)
-      @property_flush[:ca_chain] = response['ca_chain'].join("\n")
-      @property_flush[:cert] = [response['certificate'], response['issuing_ca']].join("\n")
+      # These are flushed to disk later if @property_hash != @resource
+      @property_flush[:cert_chain] = [response['certificate'], response['ca_chain'].join('')].join('')
+      @property_flush[:cert] = response['certificate']
       @property_flush[:key] = response['private_key']
     else
       flush_file_attributes(info_file, :info_owner, :info_group, :info_mode)
 
-      # Re-read the info file to make sure the intended contents of the chain/cert/key files
-      # are correct
+      # Re-read the info file to make sure the intended contents of the chain/cert/key files are correct
       cert_info = JSON.parse(File.read(info_file))
-      @property_flush[:ca_chain] = cert_info['data']['ca_chain'].join("\n")
-      @property_flush[:cert] = [cert_info['data']['certificate'], cert_info['data']['issuing_ca']].join("\n")
+      @property_flush[:cert_chain] = [cert_info['data']['certificate'], cert_info['data']['ca_chain'].join('')].join('')
+      @property_flush[:cert] = cert_info['data']['certificate']
       @property_flush[:key] = cert_info['data']['private_key']
     end
 
-    flush_file(:ca_chain_file, :ca_chain, :ca_chain_owner, :ca_chain_group, :ca_chain_mode)
+    flush_file(:cert_chain_file, :cert_chain, :cert_chain_owner, :cert_chain_group, :cert_chain_mode)
     flush_file(:cert_file, :cert, :cert_owner, :cert_group, :cert_mode)
     flush_file(:key_file, :key, :key_owner, :key_group, :key_mode)
   end

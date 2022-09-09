@@ -1,5 +1,9 @@
 # Changelog
 
+## Release 0.6.0
+
+- Certificate chain with intermediate authority #17. Requested by Enucatl
+
 ## Release 0.5.2
 
 Bugfix - Enable the vault-token service service in the approle_agent

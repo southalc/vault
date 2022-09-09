@@ -298,41 +298,9 @@ describe provider_class do
     end
   end
 
-  describe 'self.get_ca_trust' do
-    before :each do
-      allow(File).to receive(:exist?)
-    end
-
-    # '/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem'
-    # '/etc/ssl/certs/ca-certificates.crt'
-
-    it 'returns find the first certificate bundle when it exists' do
-      expect(File).to receive(:exist?).with('/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem').and_return(true)
-      expect(provider_class.get_ca_trust).to eq '/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem'
-    end
-
-    it 'returns find the second certificate bundle when it exists' do
-      expect(File).to receive(:exist?).with('/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem').and_return(false)
-      expect(File).to receive(:exist?).with('/etc/ssl/certs/ca-certificates.crt').and_return(true)
-      expect(provider_class.get_ca_trust).to eq '/etc/ssl/certs/ca-certificates.crt'
-    end
-
-    it 'raises an error when neither certificate bundle exists' do
-      expect(File).to receive(:exist?).with('/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem').and_return(false)
-      expect(File).to receive(:exist?).with('/etc/ssl/certs/ca-certificates.crt').and_return(false)
-      expect {
-        provider_class.get_ca_trust
-      }.to raise_error(Puppet::Error, 'Failed to get the trusted CA certificate file')
-    end
-  end
-
   describe 'issue_cert' do
     context 'when given a valid URI' do
       let(:uri) { instance_double('URI::HTTP', hostname: 'vault.example.com', path: '/ssh/sign/cert') }
-
-      before :each do
-        expect(provider_class).to receive(:get_ca_trust).and_return('/test/ca.crt')
-      end
 
       it 'obtains a new cert from vault' do
         resource = type_class.new({ name: '/testfile', vault_uri: 'http://vault.example.com/ssh/sign/cert', cert_type: 'host', timeout: 9,

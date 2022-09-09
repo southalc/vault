@@ -90,26 +90,14 @@ Puppet::Type.type(:vault_ssh_cert).provide(:vault_ssh_cert) do
     @property_flush[:ensure] = :absent
   end
 
-  def self.get_ca_trust
-    # Try known paths for trusted CA certificate bundles
-    if File.exist?('/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem')
-      '/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem'
-    elsif File.exist?('/etc/ssl/certs/ca-certificates.crt')
-      '/etc/ssl/certs/ca-certificates.crt'
-    else
-      raise Puppet::Error, 'Failed to get the trusted CA certificate file'
-    end
-  end
-
   def issue_cert
     # @summary Request a certificate from the Vault API.
     Puppet.info("Requesting certificate for #{@resource[:name]}")
-    ca_trust = self.class.get_ca_trust
     connection = {
       'uri'       => @resource[:vault_uri],
       'auth_path' => @resource[:auth_path],
       'auth_name' => @resource[:auth_name],
-      'ca_trust'  => ca_trust,
+      'ca_trust'  => @resource[:ca_trust],
       'timeout'   => @resource[:timeout],
     }
     request_data = {

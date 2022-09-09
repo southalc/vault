@@ -10,7 +10,7 @@ describe Puppet::Type.type(:vault_cert) do
     properties = [
       :cert_data,
       :info_owner, :info_group, :info_mode,
-      :ca_chain_file, :ca_chain_owner, :ca_chain_group, :ca_chain_mode, :ca_chain, :info_ca_chain,
+      :cert_chain_file, :cert_chain_owner, :cert_chain_group, :cert_chain_mode, :cert_chain, :info_cert_chain,
       :cert_file, :cert_owner, :cert_group, :cert_mode, :cert, :info_cert,
       :key_file, :key_owner, :key_group, :key_mode, :key, :info_key,
       :expiration
@@ -35,8 +35,8 @@ describe Puppet::Type.type(:vault_cert) do
 
   describe 'when validating read-only property' do
     read_only_properties = [
-      :ca_chain, :cert, :key, :expiration,
-      :info_ca_chain, :info_cert, :info_key
+      :cert_chain, :cert, :key, :expiration,
+      :info_cert_chain, :info_cert, :info_key
     ].freeze
 
     read_only_properties.each do |prop|
@@ -66,7 +66,7 @@ describe Puppet::Type.type(:vault_cert) do
 
   describe 'when validating insync? on read-only properties' do
     properties = [
-      :info_ca_chain, :info_cert, :info_key
+      :info_cert_chain, :info_cert, :info_key
     ].freeze
 
     properties.each do |prop|
@@ -81,7 +81,7 @@ describe Puppet::Type.type(:vault_cert) do
 
   describe 'when validating insync? on derived properties' do
     properties = [
-      [:ca_chain, :info_ca_chain],
+      [:cert_chain, :info_cert_chain],
       [:cert, :info_cert],
       [:key, :info_key],
     ].freeze
@@ -166,7 +166,7 @@ describe Puppet::Type.type(:vault_cert) do
     end
 
     context 'using an app dir for chain/cert/key files' do
-      let(:cert_resource) { described_class.new({ name: 'test', ca_chain_file: '/test/app/testchain.crt', cert_file: '/test/app/test.crt', key_file: '/test/app/test.key' }) }
+      let(:cert_resource) { described_class.new({ name: 'test', cert_chain_file: '/test/app/testchain.crt', cert_file: '/test/app/test.crt', key_file: '/test/app/test.key' }) }
       let(:auto_req) { cert_resource.autorequire }
 
       before :each do

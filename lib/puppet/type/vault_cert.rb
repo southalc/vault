@@ -25,6 +25,14 @@ Puppet::Type.newtype(:vault_cert) do
     # defaultto nil
   end
 
+  newparam(:ca_trust) do
+    desc 'Optional path to the file containing trusted certificate authorities'
+    # defaults to unset, which means the client will attempt to use the default
+    # system trust on RedHat or Debian based distributions. Any other operating
+    # systems will need supply a value.
+    # defaultto nil
+  end
+
   newparam(:timeout) do
     desc 'Length of time to wait on vault connections'
     defaultto 5
@@ -59,7 +67,7 @@ Puppet::Type.newtype(:vault_cert) do
 
   # CA Chain
 
-  newproperty(:ca_chain_file) do
+  newproperty(:cert_chain_file) do
     desc 'Where the CA chain file should be written'
     defaultto do
       cert_dir = Facter.value(:vault_cert_dir)
@@ -67,32 +75,32 @@ Puppet::Type.newtype(:vault_cert) do
     end
   end
 
-  newproperty(:ca_chain_owner) do
-    desc 'The user which the ca_chain_file should be owned by'
+  newproperty(:cert_chain_owner) do
+    desc 'The user which the cert_chain_file should be owned by'
     defaultto 'root'
   end
 
-  newproperty(:ca_chain_group) do
-    desc 'The group which the ca_chain_file should be owned by'
+  newproperty(:cert_chain_group) do
+    desc 'The group which the cert_chain_file should be owned by'
     defaultto 'root'
   end
 
-  newproperty(:ca_chain_mode) do
-    desc 'The file mode the ca_chain_file should be written with'
+  newproperty(:cert_chain_mode) do
+    desc 'The file mode the cert_chain_file should be written with'
     defaultto '0644'
   end
 
-  newproperty(:ca_chain) do
+  newproperty(:cert_chain) do
     desc 'Read-only property which contains the value of the CA chain'
     newvalues(:auto)
     defaultto :auto
 
     def insync?(is)
-      is == resource.property(:info_ca_chain).retrieve
+      is == resource.property(:info_cert_chain).retrieve
     end
   end
 
-  newproperty(:info_ca_chain) do
+  newproperty(:info_cert_chain) do
     desc 'Read-only property which contains the value of the CA chain from the info file'
     newvalues(:auto)
     defaultto :auto
@@ -207,7 +215,7 @@ Puppet::Type.newtype(:vault_cert) do
   autorequire(:file) do
     [
       Facter.value(:vault_cert_dir),
-      File.dirname(self[:ca_chain_file]),
+      File.dirname(self[:cert_chain_file]),
       File.dirname(self[:cert_file]),
       File.dirname(self[:key_file]),
     ].uniq
@@ -215,7 +223,7 @@ Puppet::Type.newtype(:vault_cert) do
 
   autorequire(:user) do
     [
-      self[:ca_chain_owner],
+      self[:cert_chain_owner],
       self[:cert_owner],
       self[:key_owner],
     ].uniq
@@ -223,7 +231,7 @@ Puppet::Type.newtype(:vault_cert) do
 
   autorequire(:group) do
     [
-      self[:ca_chain_group],
+      self[:cert_chain_group],
       self[:cert_group],
       self[:key_group],
     ].uniq

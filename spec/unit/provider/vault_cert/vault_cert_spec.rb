@@ -25,13 +25,13 @@ describe provider_class do
         '/test/vault-secrets/test.json' => {
           contents: '{"data":{"expiration": 123, "ca_chain": ["testchain"], '\
                     '"issuing_ca": "testca", "certificate": "testcert", "private_key": "testkey"}, '\
-                    '"cert_data": {}, "ca_chain_file": "/test/vault-secrets/test.chain.crt", '\
+                    '"cert_data": {}, "cert_chain_file": "/test/vault-secrets/test.chain.crt", '\
                     '"cert_file": "/test/vault-secrets/test.crt", "key_file": "/test/vault-secrets/test.key" }',
         },
         '/test/vault-secrets/test2.json' => {
           contents: '{"data":{"expiration": 123, "ca_chain": ["testchain2"], '\
                     '"issuing_ca": "testca2", "certificate": "testcert2", "private_key": "testkey2"}, '\
-                    '"cert_data": {}, "ca_chain_file": "/test/vault-secrets/test2.chain.crt", '\
+                    '"cert_data": {}, "cert_chain_file": "/test/vault-secrets/test2.chain.crt", '\
                     '"cert_file": "/test/vault-secrets/test2.crt", "key_file": "/test/vault-secrets/test2.key" }',
         }
       }
@@ -40,7 +40,7 @@ describe provider_class do
       info_files.each do |filename, details|
         info = JSON.parse(details[:contents])
         allow(provider_class).to receive(:load_file).with(filename).and_return([details[:contents], 'root', 'root', '0644'])
-        allow(provider_class).to receive(:load_file).with(info['ca_chain_file']).and_return([info['data']['ca_chain'], 'root', 'root', '0644'])
+        allow(provider_class).to receive(:load_file).with(info['cert_chain_file']).and_return([[info['data']['certificate'], info['data']['ca_chain'].join('')].join(''), 'root', 'root', '0644'])
         allow(provider_class).to receive(:load_file).with(info['cert_file']).and_return([info['data']['certificate'], 'root', 'root', '0644'])
         allow(provider_class).to receive(:load_file).with(info['key_file']).and_return([info['data']['private_key'], 'root', 'root', '0600'])
       end
@@ -257,34 +257,6 @@ describe provider_class do
     end
   end
 
-  describe 'self.get_ca_trust' do
-    before :each do
-      allow(File).to receive(:exist?)
-    end
-
-    # '/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem'
-    # '/etc/ssl/certs/ca-certificates.crt'
-
-    it 'returns find the first certificate bundle when it exists' do
-      expect(File).to receive(:exist?).with('/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem').and_return(true)
-      expect(provider_class.get_ca_trust).to eq '/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem'
-    end
-
-    it 'returns find the second certificate bundle when it exists' do
-      expect(File).to receive(:exist?).with('/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem').and_return(false)
-      expect(File).to receive(:exist?).with('/etc/ssl/certs/ca-certificates.crt').and_return(true)
-      expect(provider_class.get_ca_trust).to eq '/etc/ssl/certs/ca-certificates.crt'
-    end
-
-    it 'raises an error when neither certificate bundle exists' do
-      expect(File).to receive(:exist?).with('/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem').and_return(false)
-      expect(File).to receive(:exist?).with('/etc/ssl/certs/ca-certificates.crt').and_return(false)
-      expect {
-        provider_class.get_ca_trust
-      }.to raise_error(Puppet::Error, 'Failed to get the trusted CA certificate file')
-    end
-  end
-
   describe 'issue_cert' do
     context 'when given an invalid URI' do
       it 'raises an exception' do
@@ -301,10 +273,6 @@ describe provider_class do
 
     context 'when given a valid URI' do
       let(:uri) { instance_double('URI::HTTP', hostname: 'vault.example.com', path: '/pki/issue/cert') }
-
-      before :each do
-        expect(provider_class).to receive(:get_ca_trust).and_return('/test/ca.crt')
-      end
 
       it 'obtains a new cert from vault' do
         resource = type_class.new({ name: 'test', vault_uri: 'http://vault.example.com/pki/issue/cert', cert_data: { 'common_name': 'test.example.com' }, timeout: 9,
@@ -323,7 +291,7 @@ describe provider_class do
   describe 'flush_file_attributes' do
     [
       ['info', '/test/vault-secrets/test.json', :info_owner, :info_group, :info_mode],
-      ['ca_chain', '/test/vault-secrets/test.chain.crt', :ca_chain_owner, :ca_chain_group, :ca_chain_mode],
+      ['cert_chain', '/test/vault-secrets/test.chain.crt', :cert_chain_owner, :cert_chain_group, :cert_chain_mode],
       ['cert', '/test/vault-secrets/test.crt', :cert_owner, :cert_group, :cert_mode],
       ['key', '/test/vault-secrets/test.key', :key_owner, :key_group, :key_mode],
     ].each do |file_attributes|
@@ -402,7 +370,7 @@ describe provider_class do
 
   describe 'flush_file' do
     [
-      ['ca_chain', '/test/vault-secrets/test.chain.crt', :ca_chain_file, :ca_chain, :ca_chain_owner, :ca_chain_group, :ca_chain_mode],
+      ['cert_chain', '/test/vault-secrets/test.chain.crt', :cert_chain_file, :cert_chain, :cert_chain_owner, :cert_chain_group, :cert_chain_mode],
       ['cert', '/test/vault-secrets/test.crt', :cert_file, :cert, :cert_owner, :cert_group, :cert_mode],
       ['key', '/test/vault-secrets/test.key', :key_file, :key, :key_owner, :key_group, :key_mode],
     ].each do |file_attributes|
@@ -491,7 +459,7 @@ describe provider_class do
     let(:instance) do
       type_class.new({ name: 'test',
                       ensure: :present,
-                      ca_chain_file: '/test/vault-secrets/test.chain.crt',
+                      cert_chain_file: '/test/vault-secrets/test.chain.crt',
                       cert_file: '/test/vault-secrets/test.crt',
                       key_file: '/test/vault-secrets/test.key',
                       provider: provider_class.name })
@@ -529,7 +497,7 @@ describe provider_class do
       expect(JSON).to receive(:generate).and_return('testdata')
       expect(File).to receive(:write).with('/test/vault-secrets/test.json', 'testdata')
       expect(instance).to receive(:flush_file_attributes).with('/test/vault-secrets/test.json', :info_owner, :info_group, :info_mode, true)
-      expect(instance).to receive(:flush_file).with(:ca_chain_file, :ca_chain, :ca_chain_owner, :ca_chain_group, :ca_chain_mode)
+      expect(instance).to receive(:flush_file).with(:cert_chain_file, :cert_chain, :cert_chain_owner, :cert_chain_group, :cert_chain_mode)
       expect(instance).to receive(:flush_file).with(:cert_file, :cert, :cert_owner, :cert_group, :cert_mode)
       expect(instance).to receive(:flush_file).with(:key_file, :key, :key_owner, :key_group, :key_mode)
       instance.flush
@@ -542,7 +510,7 @@ describe provider_class do
       expect(JSON).to receive(:parse).with('testdata').and_return({ 'data' => { 'ca_chain' => ['testchain'], 'certificate' => 'testcert', 'private_key' => 'testkey' } })
       expect(File).to receive(:read).with('/test/vault-secrets/test.json').and_return('testdata')
       expect(instance).to receive(:flush_file_attributes).with('/test/vault-secrets/test.json', :info_owner, :info_group, :info_mode)
-      expect(instance).to receive(:flush_file).with(:ca_chain_file, :ca_chain, :ca_chain_owner, :ca_chain_group, :ca_chain_mode)
+      expect(instance).to receive(:flush_file).with(:cert_chain_file, :cert_chain, :cert_chain_owner, :cert_chain_group, :cert_chain_mode)
       expect(instance).to receive(:flush_file).with(:cert_file, :cert, :cert_owner, :cert_group, :cert_mode)
       expect(instance).to receive(:flush_file).with(:key_file, :key, :key_owner, :key_group, :key_mode)
       instance.flush
