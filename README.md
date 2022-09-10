@@ -13,11 +13,11 @@
 
 Version 0.6.0 of the module changes the following properties of the custom 'vault_cert" type:
 
-Old "ca_chain_file" property is now "cert_chain_file"
-Old "ca_chain_owner" property is now "cert_chain_owner"
-Old "ca_chain_group" property is now "cert_chain_group"
-Old "ca_chain_mode" property is now "cert_chain_mode"
-Old "ca_chain" property is now "cert_chain"
+* Old "ca_chain_file" property is now "cert_chain_file"
+* Old "ca_chain_owner" property is now "cert_chain_owner"
+* Old "ca_chain_group" property is now "cert_chain_group"
+* Old "ca_chain_mode" property is now "cert_chain_mode"
+* Old "ca_chain" property is now "cert_chain"
 
 The format of the "cert_chain" file now begins with the host certificate, followed by any
 subordinate CA certificates up to and ending with the root certificate.
