@@ -4,17 +4,14 @@ require 'facter'
 require 'date'
 
 Facter.add(:vault_cert_dir) do
-  confine osfamily: 'RedHat'
-
   setcode do
-    '/etc/pki/vault-secrets'
-  end
-end
-
-Facter.add(:vault_cert_dir) do
-  confine osfamily: 'Debian'
-
-  setcode do
-    '/etc/ssl/vault-secrets'
+    case Facter.value(:osfamily)
+    when 'RedHat'
+      '/etc/pki/vault-secrets'
+    when 'Debian'
+      '/etc/ssl/vault-secrets'
+    else
+      '/etc/vault-secrets'
+    end
   end
 end
