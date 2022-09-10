@@ -455,6 +455,7 @@ The following parameters are available in the `vault_ssh_cert` type.
 
 * [`auth_name`](#auth_name)
 * [`auth_path`](#auth_path)
+* [`ca_trust`](#ca_trust)
 * [`cert_type`](#cert_type)
 * [`name`](#name)
 * [`provider`](#provider)
@@ -472,6 +473,10 @@ The named certificate role used to authenticate puppet agent to vault
 The path used to authenticate puppet agent to vault
 
 Default value: `puppet-pki`
+
+##### <a name="ca_trust"></a>`ca_trust`
+
+Optional path to the file containing trusted certificate authorities
 
 ##### <a name="cert_type"></a>`cert_type`
 

@@ -3,6 +3,10 @@
 ## Release 0.6.0
 
 - Certificate chain with intermediate authority #17. Requested by Enucatl
+  This changes the content of the certificate chain file to include the host
+  certificate, followed by the issuing CA chain.
+- Enable 'ca_trust' parameter for both the 'vault_cert' and the 'vault_ssh_cert'
+  types to enable operating systems other than RedHat and Debian variants. 
 
 ## Release 0.5.2
 
