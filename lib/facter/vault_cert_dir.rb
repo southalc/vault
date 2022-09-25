@@ -1,7 +1,6 @@
-# @summary Structured fact about the managed host PKI certificate and private key
+# @summary Custom fact defines the location where vault_cert files will be located.
 
 require 'facter'
-require 'date'
 
 Facter.add(:vault_cert_dir) do
   setcode do

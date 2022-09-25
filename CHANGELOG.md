@@ -2,11 +2,15 @@
 
 ## Release 0.6.0
 
-- Certificate chain with intermediate authority #17. Requested by Enucatl
-  This changes the content of the certificate chain file to include the host
-  certificate, followed by the issuing CA chain.
-- Enable 'ca_trust' parameter for both the 'vault_cert' and the 'vault_ssh_cert'
-  types to enable operating systems other than RedHat and Debian variants. 
+- Certificate chain with intermediate authority #17. Requested by Enucatl.
+  This changes the behavior of the 'vault_cert' custom type so the content of the
+  certificate chain file begins with the host certificate followed by the issuing
+  CA chain.
+- New optional 'ca_trust' parameter for both the 'vault_cert' and 'vault_ssh_cert'
+  types should enable support for OS distro/variants other than RedHat and Debian.
+- Updated the 'vault_cert' fact to enable expanded operating system support and
+  replaced openssl commands with native ruby methods. This is only used only when
+  issuing Vault certificates through the Puppet server instead of directly to agents.
 
 ## Release 0.5.2
 

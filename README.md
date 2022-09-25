@@ -19,12 +19,11 @@ Version 0.6.0 of the module changes the following properties of the custom 'vaul
 * Old "ca_chain_mode" property is now "cert_chain_mode"
 * Old "ca_chain" property is now "cert_chain"
 
-The format of the "cert_chain" file now begins with the host certificate, followed by any
-subordinate CA certificates up to and ending with the root certificate.
+The format of the "cert_chain_file" begins with the host certificate followed by any
+subordinate CA certificates and ending with the root certificate.
 
 You can now specify the "ca_trust" parameter with the "vault_cert" and "vault_ssh_cert" types.
-This allows the types to be used on operating systems other than standard RedHat and Debian
-variants.
+This allows the types to be used on operating systems other than RedHat and Debian variants.
 
 ## Description
 
@@ -354,9 +353,9 @@ vault_cert { 'test':
   },
   # Optional
   renewal_threshold => 5,
-  ca_chain_file     => '/srv/myapp/ca.crt',
-  ca_chain_owner    => 'myapp',
-  ca_chain_group    => 'myapp',
+  cert_chain_file   => '/srv/myapp/ca.crt',
+  cert_chain_owner  => 'myapp',
+  cert_chain_group  => 'myapp',
   cert_file         => '/srv/myapp/server.crt',
   cert_owner        => 'myapp',
   cert_group        => 'myapp',
@@ -376,7 +375,7 @@ class { 'vault_secrets::vault_cert':
 ```
 
 `vault_cert` resources will autorequire any `File` resources coresponding to
-the parent directories of the `ca_chain_file`, `cert_file` and `key_file` properties. Any `User` or `Group` resources corresponding to the `*_owner` or `*_group` properties will also be autorequired.
+the parent directories of the `cert_chain_file`, `cert_file` and `key_file` properties. Any `User` or `Group` resources corresponding to the `*_owner` or `*_group` properties will also be autorequired.
 
 ### Issue SSH certificates from Vault
 
