@@ -1,5 +1,10 @@
 # Changelog
 
+## Release 0.6.1
+
+- Bugfix. Fix approle services #20. Submitted by dmaes
+- Bumped module metadata to support latest puppet and dependency versions.
+
 ## Release 0.6.0
 
 - Certificate chain with intermediate authority #17. Requested by Enucatl.
