@@ -5,7 +5,7 @@ Description=Vault agent - <%= $name %>
 Wants=<%= $name %>-vault-token.path
 
 [Service]
-PIDFile=/run/vault/vault-agent.pid
+PIDFile=/run/vault/<%= $name %>_vault-agent.pid
 ExecStart=/usr/bin/vault agent -config=/etc/vault/<%= $name %>_agent.json
 ExecReload=/bin/kill -HUP $MAINPID
 KillMode=process
