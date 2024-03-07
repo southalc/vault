@@ -83,6 +83,7 @@ class VaultSession
       raise Puppet::Error, append_api_errors(err_message, response) if fail_hard
     elsif !response.is_a?(Net::HTTPOK)
       err_message = "Vault request failed. (#{response.code}) from #{@uri})"
+      Puppet.debug response.body
       Puppet.debug append_api_errors(err_message, response)
       raise Puppet::Error, append_api_errors(err_message, response) if fail_hard
     end
