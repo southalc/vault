@@ -79,12 +79,12 @@ class VaultSession
     # @return nil
     if response.is_a?(Net::HTTPNotFound)
       err_message = "Vault path not found. (#{response.code} from #{@uri})"
-      raise Puppet::Error, append_api_errors(err_message, response) if fail_hard
       Puppet.debug append_api_errors(err_message, response)
+      raise Puppet::Error, append_api_errors(err_message, response) if fail_hard
     elsif !response.is_a?(Net::HTTPOK)
       err_message = "Vault request failed. (#{response.code}) from #{@uri})"
-      raise Puppet::Error, append_api_errors(err_message, response) if fail_hard
       Puppet.debug append_api_errors(err_message, response)
+      raise Puppet::Error, append_api_errors(err_message, response) if fail_hard
     end
     nil
   end
@@ -118,8 +118,8 @@ class VaultSession
       nil
     end
     err_message = "Failed to parse #{version} key/value data from response body: (#{@uri_path})"
-    raise Puppet::Error, err_message if output.nil? && fail_hard
     Puppet.debug err_message if output.nil?
+    raise Puppet::Error, err_message if output.nil? && fail_hard
     output ||= {}
     v1_warn = "Data from '#{@uri_path}' was requested as key/value v2, but may be v1 or just be empty."
     Puppet.debug v1_warn if @version == 'v2' &&  output.empty?
