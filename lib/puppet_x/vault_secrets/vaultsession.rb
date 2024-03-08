@@ -136,6 +136,10 @@ class VaultSession
     # @retrun [Hash] A hash containing the secret key/value pairs.
     @uri_path = uri_path
     request = Net::HTTP::Get.new(uri_path)
+    if @uri.user && @uri.password
+      Puppet.debug "Using basic authentication for #{@uri_path}"
+      request.basic_auth(@uri.user, @uri.password)
+    end
     @headers.each do |key, value|
       request[key] = value
     end
@@ -150,7 +154,13 @@ class VaultSession
     # @param [Hash] :data A hash of values to submit with the HTTP POST request.
     # return [Net::HTTPResponse]
     @uri_path = uri_path
+    # use HTTP basic authentication in uri_path with Net::HTTP::Post
     request = Net::HTTP::Post.new(uri_path)
+    Puppet.debug "Using basic authentication for #{@uri.inspect}"
+    if @uri.user && @uri.password
+      Puppet.debug "Using basic authentication for #{@uri_path}"
+      request.basic_auth(@uri.user, @uri.password)
+    end
     # This function may be called before instance variable is defined as part of initialize
     @headers ||=  {}
     @headers.each do |key, value|
