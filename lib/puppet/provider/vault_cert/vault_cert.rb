@@ -97,6 +97,7 @@ Puppet::Type.type(:vault_cert).provide(:vault_cert) do
     Puppet.info("Requesting certificate #{@resource[:name]}")
     connection = {
       'uri'       => @resource[:vault_uri],
+      'token'     => @resource[:token],
       'auth_path' => @resource[:auth_path],
       'auth_name' => @resource[:auth_name],
       'ca_trust'  => @resource[:ca_trust],
