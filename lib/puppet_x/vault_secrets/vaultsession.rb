@@ -115,7 +115,8 @@ class VaultSession
                  JSON.parse(response.body)['data']
                end
     rescue
-      nil
+      # if uri path doesn't exist return a non empty hash to prevent spamming vault with requests
+      output = {'0' => '0'}
     end
     err_message = "Failed to parse #{version} key/value data from response body: (#{@uri_path})"
     raise Puppet::Error, err_message if output.nil? && fail_hard
