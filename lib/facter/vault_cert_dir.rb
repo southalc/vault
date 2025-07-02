@@ -4,7 +4,7 @@ require 'facter'
 
 Facter.add(:vault_cert_dir) do
   setcode do
-    case Facter.value(:osfamily)
+    case Facter.value(:os)['family']
     when 'RedHat'
       '/etc/pki/vault-secrets'
     when 'Debian'

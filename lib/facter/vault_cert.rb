@@ -40,7 +40,7 @@ def vault_secrets_cert_dates(cert)
 end
 
 Facter.add(:vault_cert) do
-  confine osfamily: 'RedHat'
+  confine { Facter.value(:os)['name'] == 'RedHat' }
   has_weight 100
 
   setcode do
@@ -61,7 +61,7 @@ Facter.add(:vault_cert) do
 end
 
 Facter.add(:vault_cert) do
-  confine osfamily: 'Debian'
+  confine { Facter.value(:os)['name'] == 'Debian' }
   has_weight 100
 
   setcode do
