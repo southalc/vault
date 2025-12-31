@@ -314,13 +314,26 @@ Puppet::Type.type(:vault_cert).provide(:vault_cert) do
       @property_flush[:cert] = response['certificate']
       @property_flush[:key] = response['private_key']
     else
-      flush_file_attributes(info_file, :info_owner, :info_group, :info_mode)
-
       # Re-read the info file to make sure the intended contents of the chain/cert/key files are correct
-      cert_info = JSON.parse(File.read(info_file))
+      cert_info_json = File.read(info_file)
+      cert_info = JSON.parse(cert_info_json)
       @property_flush[:cert_chain] = [cert_info['data']['certificate'], cert_info['data']['ca_chain'].join('')].join('')
       @property_flush[:cert] = cert_info['data']['certificate']
       @property_flush[:key] = cert_info['data']['private_key']
+
+      # Reflect current file paths back into the info json
+      cert_info['cert_chain_file'] = @resource[:cert_chain_file]
+      cert_info['cert_file'] = @resource[:cert_file]
+      cert_info['key_file'] = @resource[:key_file]
+
+      # And flush info json back to disk if it has changed
+      info = JSON.generate(cert_info)
+      if info != cert_info_json
+        File.write(info_file, info)
+        @property_flush[:info_mode] = @resource[:info_mode]
+      end
+
+      flush_file_attributes(info_file, :info_owner, :info_group, :info_mode)
     end
 
     flush_file(:cert_chain_file, :cert_chain, :cert_chain_owner, :cert_chain_group, :cert_chain_mode)
