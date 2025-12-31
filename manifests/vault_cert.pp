@@ -5,18 +5,20 @@
 class vault_secrets::vault_cert (
   Boolean $purge = false,
 ) {
-  file {
-    $facts['vault_cert_dir']:
-      ensure => directory,
-      owner  => 'root',
-      group  => 'root',
-      mode   => '0755',
-  }
+  if 'vault_cert_dir' in $facts and $facts['vault_cert_dir'] !~ Undef {
+    file {
+      $facts['vault_cert_dir']:
+        ensure => directory,
+        owner  => 'root',
+        group  => 'root',
+        mode   => '0755',
+    }
 
-  if $purge {
-    resources {
-      'vault_cert':
-        purge => true;
+    if $purge {
+      resources {
+        'vault_cert':
+          purge => true;
+      }
     }
   }
 }
