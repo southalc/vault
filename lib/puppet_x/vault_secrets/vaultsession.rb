@@ -79,12 +79,13 @@ class VaultSession
     # @return nil
     if response.is_a?(Net::HTTPNotFound)
       err_message = "Vault path not found. (#{response.code} from #{@uri})"
-      raise Puppet::Error, append_api_errors(err_message, response) if fail_hard
       Puppet.debug append_api_errors(err_message, response)
+      raise Puppet::Error, append_api_errors(err_message, response) if fail_hard
     elsif !response.is_a?(Net::HTTPOK)
       err_message = "Vault request failed. (#{response.code}) from #{@uri})"
-      raise Puppet::Error, append_api_errors(err_message, response) if fail_hard
+      Puppet.debug response.body
       Puppet.debug append_api_errors(err_message, response)
+      raise Puppet::Error, append_api_errors(err_message, response) if fail_hard
     end
     nil
   end
@@ -118,8 +119,8 @@ class VaultSession
       nil
     end
     err_message = "Failed to parse #{version} key/value data from response body: (#{@uri_path})"
-    raise Puppet::Error, err_message if output.nil? && fail_hard
     Puppet.debug err_message if output.nil?
+    raise Puppet::Error, err_message if output.nil? && fail_hard
     output ||= {}
     v1_warn = "Data from '#{@uri_path}' was requested as key/value v2, but may be v1 or just be empty."
     Puppet.debug v1_warn if @version == 'v2' &&  output.empty?
@@ -135,6 +136,10 @@ class VaultSession
     # @retrun [Hash] A hash containing the secret key/value pairs.
     @uri_path = uri_path
     request = Net::HTTP::Get.new(uri_path)
+    if @uri.user && @uri.password
+      Puppet.debug "Using basic authentication for #{@uri_path}"
+      request.basic_auth(@uri.user, @uri.password)
+    end
     @headers.each do |key, value|
       request[key] = value
     end
@@ -149,7 +154,13 @@ class VaultSession
     # @param [Hash] :data A hash of values to submit with the HTTP POST request.
     # return [Net::HTTPResponse]
     @uri_path = uri_path
+    # use HTTP basic authentication in uri_path with Net::HTTP::Post
     request = Net::HTTP::Post.new(uri_path)
+    Puppet.debug "Using basic authentication for #{@uri.inspect}"
+    if @uri.user && @uri.password
+      Puppet.debug "Using basic authentication for #{@uri_path}"
+      request.basic_auth(@uri.user, @uri.password)
+    end
     # This function may be called before instance variable is defined as part of initialize
     @headers ||=  {}
     @headers.each do |key, value|

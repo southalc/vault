@@ -25,6 +25,10 @@ Puppet::Type.newtype(:vault_cert) do
     # defaultto nil
   end
 
+  newparam(:token) do
+    desc 'The token used to authenticate puppet agent to vault'
+  end
+
   newparam(:ca_trust) do
     desc 'Optional path to the file containing trusted certificate authorities'
     # defaults to unset, which means the client will attempt to use the default
