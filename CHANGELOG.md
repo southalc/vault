@@ -1,5 +1,10 @@
 # Changelog
 
+## Release 0.6.3
+
+- allow authentication via token for vault_cert #21.  Contributed by nferch
+- Improved debug output for issue #22.  Identified by jsfrerot
+
 ## Release 0.6.2
 
 - Add support for Puppet8 #25.  Contributed by optiz0r.
