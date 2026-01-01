@@ -74,13 +74,13 @@ class vault_secrets (
         group  => 'root',
         ;
       $cert:
-        mode    => '0644',
+        mode => '0644',
         ;
       $key:
-        mode    => '0600',
+        mode => '0600',
         ;
       $ca_chain:
-        mode    => '0644',
+        mode => '0644',
     }
   }
 

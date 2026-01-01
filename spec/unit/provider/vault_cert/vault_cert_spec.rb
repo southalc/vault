@@ -483,6 +483,7 @@ describe provider_class do
       expect(instance).to receive(:needs_issue?).and_return(false)
       expect(File).to receive(:read).with('/test/vault-secrets/test.json').and_return('testdata')
       expect(JSON).to receive(:parse).with('testdata').and_return({ 'data' => { 'ca_chain' => ['testchain'], 'certificate' => 'testcert', 'private_key' => 'testkey' } })
+      expect(JSON).to receive(:generate).and_return('testdata')
       expect(instance).to receive(:flush_file_attributes)
       expect(instance).to receive(:flush_file).exactly(3).times
       instance.flush
@@ -508,6 +509,7 @@ describe provider_class do
       expect(instance).not_to receive(:issue_cert)
       expect(File).not_to receive(:write)
       expect(JSON).to receive(:parse).with('testdata').and_return({ 'data' => { 'ca_chain' => ['testchain'], 'certificate' => 'testcert', 'private_key' => 'testkey' } })
+      expect(JSON).to receive(:generate).and_return('testdata')
       expect(File).to receive(:read).with('/test/vault-secrets/test.json').and_return('testdata')
       expect(instance).to receive(:flush_file_attributes).with('/test/vault-secrets/test.json', :info_owner, :info_group, :info_mode)
       expect(instance).to receive(:flush_file).with(:cert_chain_file, :cert_chain, :cert_chain_owner, :cert_chain_group, :cert_chain_mode)

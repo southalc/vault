@@ -104,7 +104,7 @@ Puppet::Type.type(:vault_ssh_cert).provide(:vault_ssh_cert) do
       cert_type:        @resource[:cert_type],
       public_key:       File.read(@resource[:name]),
       ttl:              @resource[:ttl],
-      valid_principals: !@resource[:valid_principals].empty? ? @resource[:valid_principals].join(',') : nil,
+      valid_principals: (!@resource[:valid_principals].empty?) ? @resource[:valid_principals].join(',') : nil,
     }.reject { |_k, v| v.nil? }
     # Use the Vault class for the lookup
     vault = VaultSession.new(connection)

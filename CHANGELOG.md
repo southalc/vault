@@ -1,5 +1,11 @@
 # Changelog
 
+## Release 0.6.2
+
+- Add support for Puppet8 #25.  Contributed by optiz0r.
+- Bugfix. Update info file when paths are changed on resource #26.  Contributed by optiz0r.
+- PDK update
+
 ## Release 0.6.1
 
 - Bugfix. Fix approle services #20. Submitted by dmaes
