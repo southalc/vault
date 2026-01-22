@@ -1,6 +1,6 @@
 {
   "name": "southalc-vault_secrets",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "author": "Chris Southall",
   "summary": "Work with secrets from Hashicorp Vault",
   "license": "Apache-2.0",

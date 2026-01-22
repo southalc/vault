@@ -1,5 +1,9 @@
 # Changelog
 
+## Release 0.6.4
+
+- Bugfix. typo introduced in  0.6.3.  Contributed by omgroves
+
 ## Release 0.6.3
 
 - allow authentication via token for vault_cert #21.  Contributed by nferch
