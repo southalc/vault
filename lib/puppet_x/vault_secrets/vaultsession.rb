@@ -121,7 +121,7 @@ class VaultSession
     err_message = "Failed to parse #{version} key/value data from response body: (#{@uri_path})"
     Puppet.debug err_message if output.nil?
     v1_warn = "Data from '#{@uri_path}' was requested as key/value v2, but may be v1 or empty."
-    Puppet.debug v1_warn if @version == 'v2' && outpupt && output.empty?
+    Puppet.debug v1_warn if @version == 'v2' && output && output.empty?
     v2_warn = "Data from '#{@uri_path}' appears to be key/value v2, but was requested as v1"
     Puppet.debug v2_warn if @version == 'v1' && output && output.dig('data') && output.dig('metadata')
     raise Puppet::Error, err_message if output.nil? && fail_hard
