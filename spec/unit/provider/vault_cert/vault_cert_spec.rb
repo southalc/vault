@@ -103,6 +103,17 @@ describe provider_class do
         'testcontent', 'testuser', 'testgroup', '0644'
       ]
     end
+
+    it 'returns numeric IDs when the user and group cannot be resolved' do
+      file = '/test/vault-secrets/test.json'
+      allow(File).to receive(:exist?).with(file).and_return(true)
+      allow(File).to receive(:read).with(file).and_return('testcontent')
+      allow(File::Stat).to receive(:new).with(file).and_return(instance_double('File::Stat', uid: 123, gid: 456, mode: 0o10644))
+      allow(Etc).to receive(:getpwuid).with(123).and_raise(ArgumentError)
+      allow(Etc).to receive(:getgrgid).with(456).and_raise(ArgumentError)
+
+      expect(provider_class.load_file(file)).to eq ['testcontent', 123, 456, '0644']
+    end
   end
 
   describe 'self.chown_file' do
@@ -117,6 +128,14 @@ describe provider_class do
       expect(File).to receive(:chown).with(123, 123, '/test/vault-secrets/test.json')
 
       provider_class.chown_file('/test/vault-secrets/test.json', 'testuser', 'testgroup')
+    end
+
+    it 'changes file ownership and group when given numeric IDs' do
+      expect(Etc).not_to receive(:getpwnam)
+      expect(Etc).not_to receive(:getgrnam)
+      expect(File).to receive(:chown).with(123, 456, '/test/vault-secrets/test.json')
+
+      provider_class.chown_file('/test/vault-secrets/test.json', 123, 456)
     end
 
     it 'changes file ownership when given user only' do

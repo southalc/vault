@@ -113,8 +113,16 @@ Puppet::Type.type(:vault_cert).provide(:vault_cert) do
     if file && File.exist?(file)
       content = File.read(file)
       stat = File::Stat.new(file)
-      owner = Etc.getpwuid(stat.uid).name
-      group = Etc.getgrgid(stat.gid).name
+      owner = begin
+                Etc.getpwuid(stat.uid).name
+              rescue ArgumentError
+                stat.uid
+              end
+      group = begin
+                Etc.getgrgid(stat.gid).name
+              rescue ArgumentError
+                stat.gid
+              end
       mode = '%04o' % (stat.mode & 0o7777)
       [content, owner, group, mode]
     else
@@ -123,8 +131,8 @@ Puppet::Type.type(:vault_cert).provide(:vault_cert) do
   end
 
   def self.chown_file(file, owner, group)
-    uid = owner ? Etc.getpwnam(owner).uid : nil
-    gid = group ? Etc.getgrnam(group).gid : nil
+    uid = owner.is_a?(String) ? Etc.getpwnam(owner).uid : owner
+    gid = group.is_a?(String) ? Etc.getgrnam(group).gid : group
     File.chown(uid, gid, file) unless uid.nil? && gid.nil?
   end
 
