@@ -12,8 +12,8 @@ class VaultSession
     # @param [Hash] args Configuration options for the Vault connection.
     # @option args [String] :uri Required The URL of a Vault API endpoint
     # @option args [Integer] :timeout Optional Seconds to wait for connection attempts. (5)
-    # @option args [Boolean] :secure Optional When true, security certificates will be validated against the 'ca_file' (true)
-    # @option args [String] :ca_file Optional path to a file containing the trusted certificate authority chain.
+    # @option args [Boolean] :secure Optional When true, server certificates will be validated against the trusted CA store. (true)
+    # @option args [String] :ca_trust Optional path to a trusted CA bundle. Defaults to a supported system CA bundle.
     # @option args [String] :token Optional token used to access the Vault API, otherwise attempts certificate authentication using the Puppet agent certificate.
     # @option args [String] :auth_path The Vault path of the "cert" authentication type for Puppet certificates
     # @option args [String] :auth_name The optional Vault certificate named role to authenticate against
@@ -49,7 +49,7 @@ class VaultSession
                  end
       http.use_ssl = true
       http.ssl_version = :TLSv1_2
-      http.ca_file = get_ca_file(ca_trust)
+      http.cert_store = get_cert_store(get_ca_file(ca_trust))
       http.verify_mode = OpenSSL::SSL::VERIFY_PEER
     elsif @uri.scheme == 'https'
       http.use_ssl = true
@@ -200,19 +200,43 @@ class VaultSession
   end
 
   def get_ca_file(ca_trust)
-    # @summary Try known paths for trusted CA certificates when not specified
-    # @param [String] :ca_trust The path to a trusted certificate authority file. If nil, some defaults are attempted.
-    # @return [String] The verified file path to a trusted certificate authority file.
-    ca_file = if ca_trust && File.exist?(ca_trust)
-                ca_trust
-              elsif File.exist?('/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem')
-                '/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem'
-              elsif File.exist?('/etc/ssl/certs/ca-certificates.crt')
-                '/etc/ssl/certs/ca-certificates.crt'
-              else
-                nil
-              end
-    raise Puppet::Error, 'Failed to get the trusted CA certificate file.' if ca_file.nil?
+    # @summary Select an explicit trusted CA bundle or an existing supported system bundle.
+    # @param [String] ca_trust An explicit CA bundle path.
+    # @return [String] The selected CA bundle path.
+    if ca_trust
+      raise Puppet::Error, "Trusted CA certificate file does not exist: #{ca_trust}" unless File.file?(ca_trust)
+
+      return ca_trust
+    end
+
+    ca_file = [
+      '/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem',
+      '/etc/ssl/certs/ca-certificates.crt',
+    ].find { |path| File.file?(path) }
+    raise Puppet::Error, 'Failed to get the trusted CA certificate file.' unless ca_file
+
     ca_file
+  end
+
+  def get_cert_store(ca_bundle)
+    # @summary Load trusted CA certificates while tolerating bundle comments, duplicates, and malformed entries.
+    # @param [String] ca_bundle The selected CA bundle path.
+    # @return [OpenSSL::X509::Store] A certificate store containing every valid certificate from the bundle.
+    raise Puppet::Error, "Trusted CA certificate file does not exist: #{ca_bundle}" unless File.file?(ca_bundle)
+
+    store = OpenSSL::X509::Store.new
+    loaded = 0
+    File.read(ca_bundle).scan(%r{-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----}m).each do |pem|
+      store.add_cert(OpenSSL::X509::Certificate.new(pem))
+      loaded += 1
+    rescue OpenSSL::X509::CertificateError => e
+      Puppet.debug "Skipping malformed certificate in #{ca_bundle}: #{e.message}"
+    rescue OpenSSL::X509::StoreError
+      # Duplicate certificates do not need to be added twice.
+    end
+
+    raise Puppet::Error, "No valid CA certificates found in: #{ca_bundle}" if loaded.zero?
+
+    store
   end
 end
